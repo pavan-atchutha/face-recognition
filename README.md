@@ -39,6 +39,5 @@ The id and password for admin login , however you can change it by running the c
 =======
 After that open project on vs code and in new terminal run the command  ( python manage.py runserver  ). Make sure that you are in the same directory othervise no such file or directory present error will show. For this you can run the command- cd face_recognition_attendance_system 
 
->>>>>>> f4fdc356b0faf9f1c1da7df2e478b91697b1b2ba
 
 
