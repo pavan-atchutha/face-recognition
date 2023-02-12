@@ -28,7 +28,7 @@ Pillow==8.0.1,
 
 playsound==1.2.2,
 
-pytz==2020.4,
+pytz==2020.4, 
 
 sqlparse==0.4.1   are properly installed.
 
