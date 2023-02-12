@@ -9,6 +9,7 @@ from django.db.models import Q
 from playsound import playsound
 import os
 import pickle
+from csv import writer
 
 
 last_face = 'no_face'
@@ -17,6 +18,7 @@ sound_folder = os.path.join(current_path, 'sound/')
 face_list_file = os.path.join(current_path, 'face_list.txt')
 sound = os.path.join(sound_folder, 'beep.wav')
 nameList=[]
+flag=0
 
 
 def index(request):
@@ -42,7 +44,8 @@ def ajax(request):
 def scan(request):
 
     global last_face
-
+    global flag
+    flag=0
     known_face_encodings = []
     known_face_names = []
 
@@ -67,7 +70,8 @@ def scan(request):
     process_this_frame = True
 
     while True:
-
+        if(flag==1):
+            break
         ret, frame = video_capture.read()
         small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
         rgb_small_frame = small_frame[:, :, ::-1]
@@ -94,6 +98,7 @@ def scan(request):
                         pass
                     else:
                         profile.present = True
+                        markAttendance(profile)
                         profile.save()
 
                     if last_face != name:
@@ -169,11 +174,12 @@ def add_profile(request):
 
 
 def edit_profile(request,id):
-    profile = Profile.objects.get(id=id)
+    profile = Profile.objects.get(pk=id)
     form = ProfileForm(instance=profile)
     if request.method == 'POST':
         form = ProfileForm(request.POST,request.FILES,instance=profile)
         if form.is_valid():
+            print(404)
             #encoding_image(name,image)
             form.save()
             encoding_image(str(request.POST.get("phone")),request.FILES["image"])
@@ -184,7 +190,7 @@ def edit_profile(request,id):
 
 
 def delete_profile(request,id):
-    profile = Profile.objects.get(id=id)
+    profile = Profile.objects.get(pk=id)
     profile.delete()
     return redirect('profiles')
 
@@ -196,28 +202,28 @@ def clear_history(request):
 
 
 def reset(request):
-    global nameList
     profiles = Profile.objects.all()
     for profile in profiles:
         if profile.present == True:
-            nameList.append(profile)
             profile.present = False
             profile.save()
         else:
             pass
-    markAttendance(nameList)
-    nameList=[]
+    history = LastFace.objects.all()
+    history.delete()
     return redirect('index')
 
 
 
-def markAttendance(nameList):
+def markAttendance(profile):
     with open('Attendance.csv', 'a') as f:
-        for profile in nameList :
+        print(profile.first_name)
+        #for profile in nameList :
             # now = datetime.now()
             # dtString = now.strftime('%H:%M:%S')
             # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
-            f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno}')
+        f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno}')
+        f.close()
  
 def encoding_image(name,image):
     # Step 1: Open the pickle file in append mode
@@ -234,12 +240,19 @@ def encoding_image(name,image):
             pickled_object={}
         image_of_person = face_recognition.load_image_file(image)
         person_face_encoding = face_recognition.face_encodings(image_of_person)[0]
+        if name in pickled_object.keys():
+            del pickled_object[name]
         pickled_object[name]=person_face_encoding
         pickle_file=open('pickle_file.pickle', 'wb')
         pickle.dump(pickled_object, pickle_file )
         pickle_file.close()
     except EOFError:
-        print(pickled_object = pickle.load(pickle_file))
+        # print(pickled_object = pickle.load(pickle_file))
         pickled_object = {}
+
+def camoff(request):
+    global flag
+    flag=1
+    return redirect('index')
     
     

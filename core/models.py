@@ -11,7 +11,7 @@ class Profile(models.Model):
     first_name = models.CharField(max_length=70)
     last_name = models.CharField(max_length=70)
     date = models.DateField()
-    phone = models.BigIntegerField()
+    phone = models.BigIntegerField(primary_key=True)
     email = models.EmailField()
     roomno = models.IntegerField()
     college = models.CharField(max_length=200)

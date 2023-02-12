@@ -17,5 +17,7 @@ urlpatterns = [
     path('clear_history/',clear_history,name='clear_history'),
     path('reset/',reset,name='reset'),
 
+    path('camoff/',camoff,name='camoff')
+
 
 ]
