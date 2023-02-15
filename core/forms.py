@@ -27,3 +27,6 @@ class ProfileForm(forms.ModelForm):
         self.fields['hostelname'].widget.attrs['class'] = 'form-control'
         self.fields['image'].widget.attrs['class'] = 'form-control'
         self.fields['shift'].widget.attrs['class'] = 'form-control'
+
+
+

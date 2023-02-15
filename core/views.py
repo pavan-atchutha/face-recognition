@@ -10,6 +10,14 @@ from playsound import playsound
 import os
 import pickle
 from csv import writer
+from csv import reader
+from django.shortcuts import render
+from django.template import RequestContext
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+import pandas as pd
+from datetime import datetime
+from django.core.files.storage import FileSystemStorage
 
 
 last_face = 'no_face'
@@ -73,24 +81,31 @@ def scan(request):
         if(flag==1):
             break
         ret, frame = video_capture.read()
-        small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
-        rgb_small_frame = small_frame[:, :, ::-1]
+        small_frame = cv2.resize(frame, (0, 0),None,fx=0.25, fy=0.25)
+        # rgb_small_frame = small_frame[:, :, ::-1]
+        rgb_small_frame=cv2.cvtColor(small_frame,cv2.COLOR_BGR2RGB)
 
         if process_this_frame:
-            face_locations = face_recognition.face_locations(rgb_small_frame)
-            face_encodings = face_recognition.face_encodings(
-                rgb_small_frame, face_locations)
+            face_locations = face_recognition.face_locations(rgb_small_frame,number_of_times_to_upsample=2)
+            face_encodings = face_recognition.face_encodings(rgb_small_frame,model='large',known_face_locations=face_locations )
 
             face_names = []
             for face_encoding in face_encodings:
-                matches = face_recognition.compare_faces(
-                    known_face_encodings, face_encoding)
+                mat = False
+                
+                matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
                 name = "Unknown"
 
-                face_distances = face_recognition.face_distance(
-                    known_face_encodings, face_encoding)
+                face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
                 best_match_index = np.argmin(face_distances)
-                if matches[best_match_index]:
+                if(face_distances[best_match_index] <= 0.38):
+                    mat = True
+                if mat == True:
+                    name =  known_face_names[best_match_index]
+                elif mat ==False:
+                
+                    name = "Unknown!"
+                if matches[best_match_index] and mat:
                     name = known_face_names[best_match_index]
 
                     profile = Profile.objects.get(Q(image__icontains=name))
@@ -98,6 +113,7 @@ def scan(request):
                         pass
                     else:
                         profile.present = True
+                        winsound.PlaySound(sound, winsound.SND_ASYNC)
                         markAttendance(profile)
                         profile.save()
 
@@ -105,7 +121,7 @@ def scan(request):
                         last_face = LastFace(last_face=name)
                         last_face.save()
                         last_face = name
-                        winsound.PlaySound(sound, winsound.SND_ASYNC)
+                        # winsound.PlaySound(sound, winsound.SND_ASYNC)
                     else:
                         pass
 
@@ -216,14 +232,33 @@ def reset(request):
 
 
 def markAttendance(profile):
-    with open('Attendance.csv', 'a') as f:
-        print(profile.first_name)
-        #for profile in nameList :
-            # now = datetime.now()
-            # dtString = now.strftime('%H:%M:%S')
-            # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
-        f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno}')
-        f.close()
+    now = datetime.now()
+    today = now.strftime("%Y/%m/%d_%H:%M")
+    filename = "media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
+    # f = open(filename, "w", encoding="utf-8-sig", newline="")
+    print(401)
+    try:
+        print(402)
+        with open(filename, 'a') as f:
+            print(403)
+            print(profile.first_name)
+            #for profile in nameList :
+                # now = datetime.now()
+                # dtString = now.strftime('%H:%M:%S')
+                # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
+            f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno}')
+            f.close()
+    except:
+        print(404)
+        with open(filename, 'w') as f:
+            print(profile.first_name)
+            #for profile in nameList :
+                # now = datetime.now()
+                # dtString = now.strftime('%H:%M:%S')
+                # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
+            f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno}')
+            f.close()
+
  
 def encoding_image(name,image):
     # Step 1: Open the pickle file in append mode
@@ -239,7 +274,7 @@ def encoding_image(name,image):
         else:
             pickled_object={}
         image_of_person = face_recognition.load_image_file(image)
-        person_face_encoding = face_recognition.face_encodings(image_of_person)[0]
+        person_face_encoding = face_recognition.face_encodings(image_of_person,num_jitters=100)[0]
         if name in pickled_object.keys():
             del pickled_object[name]
         pickled_object[name]=person_face_encoding
@@ -256,3 +291,6 @@ def camoff(request):
     return redirect('index')
     
     
+
+
+

@@ -5,7 +5,6 @@ from django.db import models
 
 
 
-
 types = [('None','None'),('cvr','cvr'),('asr','asr'),('vvk','vvk')]
 class Profile(models.Model):
     first_name = models.CharField(max_length=70)
@@ -29,4 +28,5 @@ class LastFace(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return self.last_face
+
 

@@ -48,6 +48,7 @@
                         <th scope="col"> </th>
                         <th scope="col">Name</th>
                         <th scope="col">Hostel Name</th>
+                        <th scope="col">Room Number</th>
                         <th scope="col">Entry Time</th>
                     </tr>
                 </thead>
@@ -57,6 +58,7 @@
                         <th scope="row">-</th>
                         <td>{{profile.first_name}} {{profile.last_name}}</td>
                         <td>{{profile.hostelname}}</td>
+                        <td>{{profile.roomno}}</td>
                         <td>{{profile.updated |date:"h:iA"}}</td>
                     </tr>
                     {% endfor%}
@@ -64,7 +66,7 @@
             </table>
             <a href="{% url 'reset' %}"><button type="button" class="btn btn-outline-secondary">Reset</button></a>
             <a href="{% url 'index' %}"><button type="button" class="btn btn-outline-primary">Refresh</button></a>
-
+            
         </div>
 
         <div class="tab-pane fade" id="absent" role="tabpanel" aria-labelledby="profile-tab">
@@ -74,6 +76,7 @@
                         <th scope="col"> </th>
                         <th scope="col">Name</th>
                         <th scope="col">Hostel Name</th>
+                        <th scope="col">Room Number</th>
                         <th scope="col">Shift Time</th>
                     </tr>
                 </thead>
@@ -83,6 +86,7 @@
                         <th scope="row">-</th>
                         <td>{{profile.first_name}} {{profile.last_name}}</td>
                         <td>{{profile.hostelname}}</td>
+                        <td>{{profile.roomno}}</td>
                         <td>{{profile.shift}}</td>
                     </tr>
                     {% endfor%}
