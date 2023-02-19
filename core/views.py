@@ -117,6 +117,7 @@ def scan(request):
                     if profile.present == True:
                         pass
                     else:
+                        print(profile.shift)
                         profile.present = True
                         winsound.PlaySound(sound, winsound.SND_ASYNC)
                         markAttendance(profile)
@@ -188,7 +189,7 @@ def add_profile(request):
         if form.is_valid():
             #encoding_image(name,image)
             form.save()
-            encoding_image(str(request.POST.get("phone")),request.FILES["image"])
+            encoding_image(str(int(request.POST.get("phone"))),request.FILES["image"])
             return redirect('profiles')
     context={'form':form}
     return render(request,'core/add_profile.html',context)
@@ -203,7 +204,7 @@ def edit_profile(request,id):
             print(404)
             #encoding_image(name,image)
             form.save()
-            encoding_image(str(request.POST.get("phone")),request.FILES["image"])
+            encoding_image(str(int(request.POST.get("phone"))),request.FILES["image"])
             #encoding_image(request.POST.get("phone"),request.POST.get("image"))
             return redirect('profiles')
     context={'form':form}
@@ -238,6 +239,7 @@ def reset(request):
 
 def markAttendance(profile):
     now = datetime.now()
+    profiles = Profile.objects.all()
     today = now.strftime("%Y/%m/%d_%H:%M")
     filename = "media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
     # f = open(filename, "w", encoding="utf-8-sig", newline="")
@@ -255,7 +257,6 @@ def markAttendance(profile):
             f.close()
     except:
         print(404)
-        profiles = Profile.objects.all()
         for profile in profiles:
             if profile.present == True:
                 profile.present = False
@@ -413,6 +414,8 @@ def download(request):
         print(date)
         print(present)
         print(hostel)
+        if present==None or hostel==None:
+            return redirect('index')#####
         if present=="Absent":
             try:
                 file_path="absentees_documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
@@ -451,3 +454,31 @@ def download(request):
 def attendance(request):
     return render(request,'core/attendance.html')
 
+def manual_checking(request):
+    if request.method=='POST':
+        phone=request.POST['phone']
+        phone=int(phone)
+        try:
+            profile = Profile.objects.get(pk=phone)
+            print(1)
+            context = {'profile': profile}
+            return render(request,'core/manul_attendance.html',context)
+        except:
+            print('sorry')
+            pass
+    return redirect('index')
+
+def manual_attendance(request):
+    print(2)
+    if request.method=='POST':
+        phone=request.POST['phone']
+        phone=int(phone)
+        try:
+            profile = Profile.objects.get(pk=phone)
+            if profile.present==True:
+                profile.present=True
+                markAttendance(profile)
+        except:
+            print('sorry')
+            pass
+    return redirect('index')

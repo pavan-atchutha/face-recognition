@@ -24,6 +24,14 @@
                             name="btnAddMore" value="SignOut" /></a>
         </div>
     </div>
+    <div>
+        <form method='post' action="/index/manual_checking">
+            {% csrf_token %}
+        <h1>Manual Attendance</h1>
+        <p>Enter phone :</p><input type="text" name="phone"><br><br>
+        <a href="{% url 'manual_checking'  %}"><button type="submit" >Present</button></a>
+        </form>
+    </div>
     <hr>
     <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">

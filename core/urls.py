@@ -28,6 +28,9 @@ urlpatterns = [
     path('attendance/',attendance,name='attendance'),
     path('attendance/download/',download,name='download'),
 
+    path('index/manual_checking',manual_checking,name='manual_checking'),
+    path('index/manual_attendance',manual_attendance,name='manual_attendance')
+
 
 
 ]
