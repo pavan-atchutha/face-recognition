@@ -1,0 +1,44 @@
+
+{% load static %}
+{% block content %}
+
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">  
+    <title>Download Attendance</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+    <form method="" action="download/">
+    <div class="wrapper">
+      <header>
+        <h1>Download Attendance</h1>
+        <p>Enter date and hostel name</p>
+      </header>
+      <div class="form">
+        <p>Enter date :</p><input type="date" name="date"><br><br>
+        <span> &nbsp; Status :    </span>
+        <select name="present" id="present">
+          <option value="">None</option>
+          <option value="Absent">Absent</option>
+          <option value="Present">Present</option>
+        </select>
+        <span> &nbsp; Hostel :    </span>
+        <select name="hostel" id="hostel">
+          <option value="">None</option>
+          <option value="All">All</option>
+          <option value="cvr">cvr</option>
+          <option value="asr">asr</option>
+          <option value="asr">vvk</option>
+        </select>
+        <a href="{% url 'download'  %}"><button type="submit" >Download</button></a>
+      </div>
+    </div>
+  </form>
+  </body>
+</html>
+
+{% endblock content %}

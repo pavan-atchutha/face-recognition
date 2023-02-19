@@ -18,6 +18,11 @@ from django.urls import reverse
 import pandas as pd
 from datetime import datetime
 from django.core.files.storage import FileSystemStorage
+from django.contrib.auth.models import User
+from django.contrib import messages
+from django.contrib.auth import authenticate,login,logout
+import pathlib
+from django.http import FileResponse
 
 
 last_face = 'no_face'
@@ -246,17 +251,27 @@ def markAttendance(profile):
                 # now = datetime.now()
                 # dtString = now.strftime('%H:%M:%S')
                 # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
-            f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno}')
+            f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
             f.close()
     except:
         print(404)
+        profiles = Profile.objects.all()
+        for profile in profiles:
+            if profile.present == True:
+                profile.present = False
+                profile.save()
+            else:
+                pass
+        history = LastFace.objects.all()
+        history.delete()
         with open(filename, 'w') as f:
             print(profile.first_name)
             #for profile in nameList :
                 # now = datetime.now()
                 # dtString = now.strftime('%H:%M:%S')
                 # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
-            f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno}')
+            f.writelines(f'first_name,last_name,date,hostelname,roomno,phone')
+            f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
             f.close()
 
  
@@ -289,8 +304,150 @@ def camoff(request):
     global flag
     flag=1
     return redirect('index')
+
     
     
 
 
+
+def signin(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        pass1 = request.POST['pass1']
+        
+        user = authenticate(username=username, password=pass1)
+        
+        if user is not None:
+            login(request, user)
+            # fname = user.first_name
+            # messages.success(request, "Logged In Sucessfully!!")
+            now = datetime.now()
+            filename = "media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
+            try:
+                print(402)
+                f=open(filename, 'a')
+            except:
+                print(404)
+                profiles = Profile.objects.all()
+                for profile in profiles:
+                    if profile.present == True:
+                        profile.present = False
+                        profile.save()
+                    else:
+                        pass
+                history = LastFace.objects.all()
+                history.delete()
+            return render(request, 'core/index.html')
+        else:
+            messages.error(request, "Bad Credentials!!")
+            return redirect('home')
+    
+    return render(request, 'core/signin.html')
+
+
+def signout(request):
+    absent()
+    logout(request)
+    messages.success(request, "Logged Out Successfully!!")
+    return redirect('home')
+
+def home(request):
+    return render(request,'core/open.html')
+
+
+def signup(request):
+    if request.method=="POST":
+        username=request.POST['username']
+        fname = request.POST['fname']
+        lname =request.POST['lname']
+        # mobileno = request.POST['mobileno']
+        pass1 = request.POST['pass1']
+        pass2 = request.POST['pass2']
+        if User.objects.filter(username=username).exists():
+            messages.error(request,"User already exist! try other username....")
+            return redirect('home')
+        # if User.objects.filter(mobileno=mobileno).exists():
+        #     messages.error(request,"mobileno already exist!....")
+        #     return redirect('home')
+        if len(username)>11:
+            messages.error(request,"username must under 11 characters!....")
+            return redirect('home')
+        if pass1!=pass2:
+            messages.error(request,"Passwoed not matched!....")
+            return redirect('home')
+        myuser = User.objects.create_user(username,None,pass1)
+        myuser.lname=lname
+        myuser.fname=fname
+        myuser.save()  
+        return redirect('signin')
+        
+        
+    return render(request, "core/signup.html")
+
+
+def absent():
+    # file_path="media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
+    # dt =pd.read_csv(file_path)
+    # dt=dt.sort_values('hostelname')
+    # list_present_id=dt['phone']
+    file="absentees_documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
+    profiles = Profile.objects.all()
+    with open(file, 'w') as f:
+        f.writelines(f'first_name,last_name,date,hostelname,roomno,phone')
+        f.close()
+    for profile in profiles:
+        if profile.present == False:
+            with open(file, 'a') as f:
+                print(profile.first_name)
+                f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
+                f.close()
+
+
+
+def download(request):
+    print(request.method)
+    if request.method=='GET':
+        date=request.GET.get("date", "")
+        present=request.GET.get("present","")
+        hostel=request.GET["hostel"]
+        print(date)
+        print(present)
+        print(hostel)
+        if present=="Absent":
+            try:
+                file_path="absentees_documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
+                dt =pd.read_csv(file_path)
+            except:
+                messages.error(request, 'file not found.')
+                return redirect('index')
+
+        else:
+            try:
+                file_path="media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
+                dt =pd.read_csv(file_path)
+            except:
+                messages.error(request, 'file not found.')
+                return redirect('index')
+        if hostel=="All":
+            dt=dt.sort_values('hostelname')
+        else:
+            dt=dt.sort_values('roomno')
+            dt=dt[dt['hostelname']==hostel]
+        print(dt)
+        dt.to_csv("Downloads/"+date+"_"+present+"_"+hostel+"_"+'file.csv')
+
+        file_server = pathlib.Path("Downloads/"+date+"_"+present+"_"+hostel+"_"+'file.csv')
+        if not file_server.exists():
+            messages.error(request, 'file not found.')
+        else:
+            file_to_download = open(str(file_server), 'rb')
+            response = FileResponse(file_to_download, content_type='application/force-download')
+            response['Content-Disposition'] = 'inline; filename='+date+'"_"'+present+'"_"'+hostel+"_"+'file.csv'
+            print(123)
+            return response
+        
+    return redirect('index')
+
+def attendance(request):
+    return render(request,'core/attendance.html')
 

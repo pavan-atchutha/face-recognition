@@ -1,2 +1,0 @@
-1. Model updation
-2. Added roomno(room Number)

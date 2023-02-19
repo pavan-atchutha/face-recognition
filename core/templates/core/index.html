@@ -20,6 +20,8 @@
             
             <a   href="{% url 'profiles' %}"><input type="submit" class="profile-edit-btn m-2 "
                         name="btnAddMore" value="Create & Edit Profiles" /></a>
+            <a   href="{% url 'signout' %}"><input type="submit" class="profile-edit-btn m-2 "
+                            name="btnAddMore" value="SignOut" /></a>
         </div>
     </div>
     <hr>
@@ -66,7 +68,7 @@
             </table>
             <a href="{% url 'reset' %}"><button type="button" class="btn btn-outline-secondary">Reset</button></a>
             <a href="{% url 'index' %}"><button type="button" class="btn btn-outline-primary">Refresh</button></a>
-            
+            <a href="{% url 'attendance'  %}"><button type="button" class="btn btn-outline-primary">Download</button></a>
         </div>
 
         <div class="tab-pane fade" id="absent" role="tabpanel" aria-labelledby="profile-tab">

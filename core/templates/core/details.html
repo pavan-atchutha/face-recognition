@@ -6,7 +6,10 @@
 {% if profile == None %}
 <div class="container emp-profile">
     <div><a   href="{% url 'camoff' %}"><input type="submit" class="profile-edit-btn m-2 "
-        name="btnAddMore" value="Stop Scanner" /></a></div>
+        name="btnAddMore" value="Stop Scanner" /></a>
+        <a   href="{% url 'signout' %}"><input type="submit" class="profile-edit-btn m-2 "
+            name="btnAddMore" value="SignOut" /></a>
+    </div>
     <div class="row">
         <div class="col-md-5">
 
