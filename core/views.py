@@ -242,7 +242,6 @@ def markAttendance(profile):
     profiles = Profile.objects.all()
     today = now.strftime("%Y/%m/%d_%H:%M")
     filename = "media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
-    # f = open(filename, "w", encoding="utf-8-sig", newline="")
     print(401)
     try:
         print(402)
@@ -256,23 +255,24 @@ def markAttendance(profile):
             f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
             f.close()
     except:
-        print(404)
-        for profile in profiles:
-            if profile.present == True:
-                profile.present = False
-                profile.save()
-            else:
-                pass
-        history = LastFace.objects.all()
-        history.delete()
+        # print(404)
+        # for profile in profiles:
+        #     if profile.present == True:
+        #         profile.present = False
+        #         profile.save()
+        #     else:
+        #         pass
+        # history = LastFace.objects.all()
+        # history.delete()
         with open(filename, 'w') as f:
             print(profile.first_name)
             #for profile in nameList :
                 # now = datetime.now()
                 # dtString = now.strftime('%H:%M:%S')
                 # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
+            print('write')
             f.writelines(f'first_name,last_name,date,hostelname,roomno,phone')
-            f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
+            # f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
             f.close()
 
  
@@ -326,10 +326,19 @@ def signin(request):
             filename = "media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
             try:
                 print(402)
-                f=open(filename, 'a')
+                f=open(filename, 'r')
             except:
                 print(404)
                 profiles = Profile.objects.all()
+                with open(filename, 'w') as f:
+                    #for profile in nameList :
+                        # now = datetime.now()
+                        # dtString = now.strftime('%H:%M:%S')
+                        # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
+                    print('write')
+                    f.writelines(f'first_name,last_name,date,hostelname,roomno,phone')
+                    # f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
+                    f.close()
                 for profile in profiles:
                     if profile.present == True:
                         profile.present = False
@@ -455,8 +464,8 @@ def attendance(request):
     return render(request,'core/attendance.html')
 
 def manual_checking(request):
-    if request.method=='POST':
-        phone=request.POST['phone']
+    if request.method=='GET':
+        phone=request.GET['phone']
         phone=int(phone)
         try:
             profile = Profile.objects.get(pk=phone)

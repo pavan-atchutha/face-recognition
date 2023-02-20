@@ -25,8 +25,7 @@
         </div>
     </div>
     <div>
-        <form method='post' action="/index/manual_checking">
-            {% csrf_token %}
+        <form method='get' action="/index/manual_checking">
         <h1>Manual Attendance</h1>
         <p>Enter phone :</p><input type="text" name="phone"><br><br>
         <a href="{% url 'manual_checking'  %}"><button type="submit" >Present</button></a>
