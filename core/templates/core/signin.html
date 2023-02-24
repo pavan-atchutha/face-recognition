@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,31 +6,36 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In</title>
+    <link rel="stylesheet" href="{% static 'css/style_sign.css' %}">
+    <script src="{% static 'script.js' %}"></script>
 </head>
 <body>
-
+    
+    
     {% for message in messages %}
     <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
         <strong>Message:</strong> {{ message }}
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
     <span aria-hidden="true">&times;</span>
-  </button>
+  </button><br>
     </div>
     {% endfor %}
-
-    <h3>Log In to your account!</h3>
+    <div class="container">
+    <h1>Log In </h1>
     <form method="post" action="/signin" class="mb-2">
         {% csrf_token %}
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" class="form-control" id="username" name="username" placeholder="Enter Your Username" Required>
+        <div class="form-control">
+            
+            <input type="text"  id="username" name="username" Required>
+            <label for="username"><span>Username</span></label>
         </div>
-        <div class="form-group">
-            <label for="pass1">Password</label>
-            <input type="password" class="form-control" id="pass1" name="pass1" placeholder="Enter Your Password" Required>
+        <div class="form-control">
+            <input type="password"  id="pass1" name="pass1"  Required>
+            <label for="pass1"><span>Password</span></label>
         </div>
 
-        <button type="submit" class="btn btn-primary">Log In</button>
+        <button type="submit" class="btn">Log In</button>
     </form>
+    </div>
 </body>
 </html>
