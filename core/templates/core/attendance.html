@@ -1,7 +1,7 @@
 
 {% load static %}
 {% block content %}
-
+{% if user.is_authenticated %}
 
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -41,5 +41,5 @@
   </form>
   </body>
 </html>
-
+{% endif %}
 {% endblock content %}

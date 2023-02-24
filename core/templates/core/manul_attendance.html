@@ -1,7 +1,7 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% block content %}
-
+{% if user.is_authenticated %}
 
 {% if profile == None %}
    <div ><p>Sorry invalid number!</p></div>
@@ -35,5 +35,5 @@
         </div>
 </div>
 {% endif %}
-
+{% endif %}
 {% endblock content %}

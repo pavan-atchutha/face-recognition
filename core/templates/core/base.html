@@ -1,4 +1,5 @@
 {% load static %}
+{% if user.is_authenticated %}
 <html lang="en">
 
 <head>
@@ -37,3 +38,4 @@
 </body>
 
 </html>
+{% endif %}

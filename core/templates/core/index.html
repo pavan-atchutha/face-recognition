@@ -1,6 +1,17 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% block content %}
+{% if user.is_authenticated %}
+
+{% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <strong>Message:</strong> {{ message }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button><br>
+    </div>
+    {% endfor %}
+
 
 <div class="container emp-profile">
 
@@ -76,6 +87,7 @@
             <a href="{% url 'reset' %}"><button type="button" class="btn btn-outline-secondary">Reset</button></a>
             <a href="{% url 'index' %}"><button type="button" class="btn btn-outline-primary">Refresh</button></a>
             <a href="{% url 'attendance'  %}"><button type="button" class="btn btn-outline-primary">Download</button></a>
+            <a href="/signup"><button type="button" class="btn btn-outline-primary">Add Warden</button></a>
         </div>
 
         <div class="tab-pane fade" id="absent" role="tabpanel" aria-labelledby="profile-tab">
@@ -141,4 +153,9 @@
     });
 </script>
 
+
+
+
+
+{% endif %}
 {% endblock content %}

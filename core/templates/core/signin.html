@@ -11,15 +11,7 @@
 </head>
 <body>
     
-    
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-        <strong>Message:</strong> {{ message }}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-    <span aria-hidden="true">&times;</span>
-  </button><br>
-    </div>
-    {% endfor %}
+
     <div class="container">
     <h1>Log In </h1>
     <form method="post" action="/signin" class="mb-2">
@@ -37,5 +29,15 @@
         <button type="submit" class="btn">Log In</button>
     </form>
     </div>
+
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <strong>Message:</strong> {{ message }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button><br>
+    </div>
+    {% endfor %}
+
 </body>
 </html>

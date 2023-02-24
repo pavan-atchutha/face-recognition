@@ -1,4 +1,5 @@
 {% load static %}
+{% if request.user.is_superuser %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -53,3 +54,4 @@
     </div>
 </body>
 </html>
+{% endif %}

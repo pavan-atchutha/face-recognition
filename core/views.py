@@ -130,7 +130,7 @@ def scan(request):
                         att[0].remove((profile.pk))
                         att[1].append(profile.pk)
                         print(attendance[date])
-                        markAttendance(profile)
+                        # markAttendance(profile)
                         profile.save()
 
                     if last_face != name:
@@ -251,43 +251,43 @@ def reset(request):
 
 
 
-def markAttendance(profile):
-    now = datetime.now()
-    profiles = Profile.objects.all()
-    today = now.strftime("%Y/%m/%d_%H:%M")
-    filename = "media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
-    print(401)
-    try:
-        print(402)
-        with open(filename, 'a') as f:
-            print(403)
-            print(profile.first_name)
-            #for profile in nameList :
-                # now = datetime.now()
-                # dtString = now.strftime('%H:%M:%S')
-                # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
-            f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
-            f.close()
-    except:
-        # print(404)
-        # for profile in profiles:
-        #     if profile.present == True:
-        #         profile.present = False
-        #         profile.save()
-        #     else:
-        #         pass
-        # history = LastFace.objects.all()
-        # history.delete()
-        with open(filename, 'w') as f:
-            print(profile.first_name)
-            #for profile in nameList :
-                # now = datetime.now()
-                # dtString = now.strftime('%H:%M:%S')
-                # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
-            print('write')
-            f.writelines(f'first_name,last_name,date,hostelname,roomno,phone')
-            # f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
-            f.close()
+# def markAttendance(profile):
+#     now = datetime.now()
+#     profiles = Profile.objects.all()
+#     today = now.strftime("%Y/%m/%d_%H:%M")
+#     filename = "media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
+#     print(401)
+#     try:
+#         print(402)
+#         with open(filename, 'a') as f:
+#             print(403)
+#             print(profile.first_name)
+#             #for profile in nameList :
+#                 # now = datetime.now()
+#                 # dtString = now.strftime('%H:%M:%S')
+#                 # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
+#             f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
+#             f.close()
+#     except:
+#         # print(404)
+#         # for profile in profiles:
+#         #     if profile.present == True:
+#         #         profile.present = False
+#         #         profile.save()
+#         #     else:
+#         #         pass
+#         # history = LastFace.objects.all()
+#         # history.delete()
+#         with open(filename, 'w') as f:
+#             print(profile.first_name)
+#             #for profile in nameList :
+#                 # now = datetime.now()
+#                 # dtString = now.strftime('%H:%M:%S')
+#                 # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
+#             print('write')
+#             f.writelines(f'first_name,last_name,date,hostelname,roomno,phone')
+#             # f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
+#             f.close()
 
  
 def encoding_image(name,image):
@@ -334,33 +334,33 @@ def signin(request):
         
         if user is not None:
             login(request, user)
-            fname = user.first_name
+            # fname = user.first_name
             messages.success(request, "Logged In Sucessfully!!")
-            now = datetime.now()
-            filename = "media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
-            try:
-                print(402)
-                f=open(filename, 'r')
-            except:
-                print(404)
-                profiles = Profile.objects.all()
-                with open(filename, 'w') as f:
-                    #for profile in nameList :
-                        # now = datetime.now()
-                        # dtString = now.strftime('%H:%M:%S')
-                        # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
-                    print('write')
-                    f.writelines(f'first_name,last_name,date,hostelname,roomno,phone')
-                    # f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
-                    f.close()
-                for profile in profiles:
-                    if profile.present == True:
-                        profile.present = False
-                        profile.save()
-                    else:
-                        pass
-                history = LastFace.objects.all()
-                history.delete()
+            # now = datetime.now()
+            # filename = "media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
+            # try:
+            #     print(402)
+            #     f=open(filename, 'r')
+            # except:
+            #     print(404)
+            #     profiles = Profile.objects.all()
+            #     with open(filename, 'w') as f:
+            #         #for profile in nameList :
+            #             # now = datetime.now()
+            #             # dtString = now.strftime('%H:%M:%S')
+            #             # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
+            #         print('write')
+            #         f.writelines(f'first_name,last_name,date,hostelname,roomno,phone')
+            #         # f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
+            #         f.close()
+            #     for profile in profiles:
+            #         if profile.present == True:
+            #             profile.present = False
+            #             profile.save()
+            #         else:
+            #             pass
+            #     history = LastFace.objects.all()
+            #     history.delete()
             return render(request, 'core/index.html')
         else:
             messages.error(request, "Bad Credentials!!")
@@ -370,7 +370,7 @@ def signin(request):
 
 
 def signout(request):
-    absent()
+    # absent()
     logout(request)
     messages.success(request, "Logged Out Successfully!!")
     return redirect('home')
@@ -409,22 +409,22 @@ def signup(request):
     return render(request, "core/signup.html")
 
 
-def absent():
-    # file_path="media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
-    # dt =pd.read_csv(file_path)
-    # dt=dt.sort_values('hostelname')
-    # list_present_id=dt['phone']
-    file="absentees_documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
-    profiles = Profile.objects.all()
-    with open(file, 'w') as f:
-        f.writelines(f'first_name,last_name,date,hostelname,roomno,phone')
-        f.close()
-    for profile in profiles:
-        if profile.present == False:
-            with open(file, 'a') as f:
-                print(profile.first_name)
-                f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
-                f.close()
+# def absent():
+#     # file_path="media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
+#     # dt =pd.read_csv(file_path)
+#     # dt=dt.sort_values('hostelname')
+#     # list_present_id=dt['phone']
+#     file="absentees_documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
+#     profiles = Profile.objects.all()
+#     with open(file, 'w') as f:
+#         f.writelines(f'first_name,last_name,date,hostelname,roomno,phone')
+#         f.close()
+#     for profile in profiles:
+#         if profile.present == False:
+#             with open(file, 'a') as f:
+#                 print(profile.first_name)
+#                 f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
+#                 f.close()
 
 
 
@@ -541,7 +541,7 @@ def manual_attendance(request):
                 profile.present=True
                 att[0].remove(profile.pk)
                 att[1].append(profile.pk)
-                markAttendance(profile)
+                # markAttendance(profile)
         except:
             print('sorry')
             pass
