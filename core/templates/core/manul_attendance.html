@@ -3,6 +3,18 @@
 {% block content %}
 {% if user.is_authenticated %}
 
+
+<header style="top: 3px;">
+    {% for message in messages %}
+    <div  role="alert" >
+        <strong>Message:</strong> {{ message }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+    </button><br>
+    </div>
+    {% endfor %}
+</header>
+
 {% if profile == None %}
    <div ><p>Sorry invalid number!</p></div>
 {% else %}
@@ -35,5 +47,10 @@
         </div>
 </div>
 {% endif %}
+
+{%else%}
+
+
+<h1>Your session closed,Please Login Again!!!</h1>
 {% endif %}
 {% endblock content %}

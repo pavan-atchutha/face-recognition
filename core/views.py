@@ -23,6 +23,8 @@ from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
 import pathlib
 from django.http import FileResponse
+from django.contrib.auth.decorators import login_required
+from django.template import RequestContext
 
 
 last_face = 'no_face'
@@ -33,7 +35,7 @@ sound = os.path.join(sound_folder, 'beep.wav')
 nameList=[]
 flag=0
 
-
+@login_required
 def index(request):
     scanned = LastFace.objects.all().order_by('date').reverse()
     present = Profile.objects.filter(present=True).order_by('updated').reverse()
@@ -45,7 +47,7 @@ def index(request):
     }
     return render(request, 'core/index.html', context)
 
-
+@login_required
 def ajax(request):
     last_face = LastFace.objects.last()
     context = {
@@ -53,7 +55,7 @@ def ajax(request):
     }
     return render(request, 'core/ajax.html', context)
 
-
+@login_required
 def scan(request):
 
     global last_face
@@ -85,94 +87,99 @@ def scan(request):
     face_encodings = []
     face_names = []
     process_this_frame = True
+    try:
+        while True:
+            if(flag==1):
+                break
+            ret, frame = video_capture.read()
+            small_frame = cv2.resize(frame, (0, 0),None,fx=0.25, fy=0.25)
+            # rgb_small_frame = small_frame[:, :, ::-1]
+            rgb_small_frame=cv2.cvtColor(small_frame,cv2.COLOR_BGR2RGB)
 
-    while True:
-        if(flag==1):
-            break
-        ret, frame = video_capture.read()
-        small_frame = cv2.resize(frame, (0, 0),None,fx=0.25, fy=0.25)
-        # rgb_small_frame = small_frame[:, :, ::-1]
-        rgb_small_frame=cv2.cvtColor(small_frame,cv2.COLOR_BGR2RGB)
+            if process_this_frame:
+                face_locations = face_recognition.face_locations(rgb_small_frame,number_of_times_to_upsample=2)
+                face_encodings = face_recognition.face_encodings(rgb_small_frame,model='large',known_face_locations=face_locations )
 
-        if process_this_frame:
-            face_locations = face_recognition.face_locations(rgb_small_frame,number_of_times_to_upsample=2)
-            face_encodings = face_recognition.face_encodings(rgb_small_frame,model='large',known_face_locations=face_locations )
+                face_names = []
+                for face_encoding in face_encodings:
+                    mat = False
 
-            face_names = []
-            for face_encoding in face_encodings:
-                mat = False
-                
-                matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
-                name = "Unknown"
+                    matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+                    name = "Unknown"
 
-                face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
-                best_match_index = np.argmin(face_distances)
-                if(face_distances[best_match_index] <= 0.38):
-                    mat = True
-                if mat == True:
-                    name =  known_face_names[best_match_index]
-                elif mat ==False:
-                
-                    name = "Unknown!"
-                if matches[best_match_index] and mat:
-                    name = known_face_names[best_match_index]
+                    face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+                    best_match_index = np.argmin(face_distances)
+                    if(face_distances[best_match_index] <= 0.38):
+                        mat = True
+                    if mat == True:
+                        name =  known_face_names[best_match_index]
+                    elif mat ==False:
+                    
+                        name = "Unknown!"
+                    if matches[best_match_index] and mat:
+                        name = known_face_names[best_match_index]
 
-                    profile = Profile.objects.get(Q(image__icontains=name))
-                    if profile.present == True:
-                        pass
-                    else:
-                        print(profile.shift)
-                        profile.present = True
-                        winsound.PlaySound(sound, winsound.SND_ASYNC)
-                        if len(att[0])==0:
-                            print('all attendance over')
-                            break
-                        att[0].remove((profile.pk))
-                        att[1].append(profile.pk)
-                        print(attendance[date])
-                        # markAttendance(profile)
-                        profile.save()
+                        profile = Profile.objects.get(Q(image__icontains=name))
+                        if profile.present == True or profile.pk in att[1]:
+                            messages.error(request,'Already present!')
+                            pass
+                        else:
+                            print(profile.shift)
+                            profile.present = True
+                            winsound.PlaySound(sound, winsound.SND_ASYNC)
+                            if len(att[0])==0:
+                                print('all attendance over!')
+                                messages.success(request, "All Attendance Over!!")
+                                break
+                            att[0].remove((profile.pk))
+                            att[1].append(profile.pk)
+                            print(attendance[date])
+                            # markAttendance(profile)
+                            profile.save()
 
-                    if last_face != name:
-                        last_face = LastFace(last_face=name)
-                        last_face.save()
-                        last_face = name
-                        # winsound.PlaySound(sound, winsound.SND_ASYNC)
-                    else:
-                        pass
+                        if last_face != name:
+                            last_face = LastFace(last_face=name)
+                            last_face.save()
+                            last_face = name
+                            # winsound.PlaySound(sound, winsound.SND_ASYNC)
+                        else:
+                            pass
 
-                face_names.append(name)
+                    face_names.append(name)
 
-        process_this_frame = not process_this_frame
+            process_this_frame = not process_this_frame
 
-        for (top, right, bottom, left), name in zip(face_locations, face_names):
-            top *= 4
-            right *= 4
-            bottom *= 4
-            left *= 4
+            for (top, right, bottom, left), name in zip(face_locations, face_names):
+                top *= 4
+                right *= 4
+                bottom *= 4
+                left *= 4
 
-            cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+                cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
 
-            cv2.rectangle(frame, (left, bottom - 35),
-                          (right, bottom), (0, 0, 255), cv2.FILLED)
-            font = cv2.FONT_HERSHEY_DUPLEX
-            cv2.putText(frame, name, (left + 6, bottom - 6),
-                        font, 0.5, (255, 255, 255), 1)
+                cv2.rectangle(frame, (left, bottom - 35),
+                              (right, bottom), (0, 0, 255), cv2.FILLED)
+                font = cv2.FONT_HERSHEY_DUPLEX
+                cv2.putText(frame, name, (left + 6, bottom - 6),
+                            font, 0.5, (255, 255, 255), 1)
 
-        cv2.imshow('Video', frame)
+            cv2.imshow('Video', frame)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                print("db sucessfully update!")
+                messages.success(request, "attendance db Successfully updated!!")
+                break
+    except:
+        messages.error(request,"Check person Credentials And Try again!")
 
     video_capture.release()
     cv2.destroyAllWindows()
     attendance[date]=att
     pickle_file=open('attendance.pickle', 'wb')
     pickle.dump(attendance, pickle_file )
-    print("db sucessfully update!")
     return HttpResponse('scaner closed', last_face)
 
-
+@login_required
 def profiles(request):
     profiles = Profile.objects.all()
     context = {
@@ -180,7 +187,7 @@ def profiles(request):
     }
     return render(request, 'core/profiles.html', context)
 
-
+@login_required
 def details(request):
     try:
         last_face = LastFace.objects.last()
@@ -195,48 +202,58 @@ def details(request):
     }
     return render(request, 'core/details.html', context)
 
-
+@login_required
 def add_profile(request):
     form = ProfileForm
-    if request.method == 'POST':
-        form = ProfileForm(request.POST,request.FILES)
-        if form.is_valid():
-            #encoding_image(name,image)
-            form.save()
-            encoding_image(str(int(request.POST.get("phone"))),request.FILES["image"])
-            return redirect('profiles')
+    try:
+        if request.method == 'POST':
+            form = ProfileForm(request.POST,request.FILES)
+            if form.is_valid():
+                #encoding_image(name,image)
+                form.save()
+                encoding_image(str(int(request.POST.get("phone"))),request.FILES["image"])
+                return redirect('profiles')
+    except:
+        messages.error(request,"Try again!add photo and phoneno")
     context={'form':form}
     return render(request,'core/add_profile.html',context)
 
-
+@login_required
 def edit_profile(request,id):
     profile = Profile.objects.get(pk=id)
     form = ProfileForm(instance=profile)
-    if request.method == 'POST':
-        form = ProfileForm(request.POST,request.FILES,instance=profile)
-        if form.is_valid():
-            print(404)
-            #encoding_image(name,image)
-            form.save()
-            encoding_image(str(int(request.POST.get("phone"))),request.FILES["image"])
-            #encoding_image(request.POST.get("phone"),request.POST.get("image"))
-            return redirect('profiles')
+    try:
+        if request.method == 'POST':
+            form = ProfileForm(request.POST,request.FILES,instance=profile)
+            if form.is_valid():
+                print(404)
+                #encoding_image(name,image)
+                form.save()
+                try:
+                    encoding_image(str(int(request.POST.get("phone"))),request.FILES["image"])
+                    #encoding_image(request.POST.get("phone"),request.POST.get("image"))
+                    messages.success(request,'update image Sucessfully!')
+                except:
+                    messages.error(request,'update Sucessfully!')
+                return redirect('profiles')
+    except:
+        messages.error(request,"Try again! add photo and phoneno")
     context={'form':form}
     return render(request,'core/add_profile.html',context)
 
-
+@login_required
 def delete_profile(request,id):
     profile = Profile.objects.get(pk=id)
     profile.delete()
     return redirect('profiles')
 
-
+@login_required
 def clear_history(request):
     history = LastFace.objects.all()
     history.delete()
     return redirect('index')
 
-
+@login_required
 def reset(request):
     profiles = Profile.objects.all()
     for profile in profiles:
@@ -318,6 +335,8 @@ def encoding_image(name,image):
 def camoff(request):
     global flag
     flag=1
+    print("db sucessfully update!")
+    messages.success(request, "attendance db Successfully updated!!")
     return redirect('index')
 
     
@@ -368,7 +387,7 @@ def signin(request):
     
     return render(request, 'core/signin.html')
 
-
+@login_required
 def signout(request):
     # absent()
     logout(request)
@@ -378,7 +397,7 @@ def signout(request):
 def home(request):
     return render(request,'core/open.html')
 
-
+@login_required
 def signup(request):
     if request.method=="POST":
         username=request.POST['username']
@@ -427,7 +446,7 @@ def signup(request):
 #                 f.close()
 
 
-
+@login_required
 def download(request):
     print(request.method)
     if request.method=='GET':
@@ -443,6 +462,9 @@ def download(request):
         attendance=pickle.loads(open('attendance.pickle',"rb").read())
         print(date)
         print(attendance)
+        if date not in attendance.keys():
+            messages.success(request,"attendance not found!!")
+            return redirect('index')
         att=attendance[str(date)]
         print(att)
         if present=="Absent":
@@ -505,10 +527,10 @@ def download(request):
             return response
         
     return redirect('index')
-
+@login_required
 def attendance(request):
     return render(request,'core/attendance.html')
-
+@login_required
 def manual_checking(request):
     if request.method=='GET':
         phone=request.GET['phone']
@@ -522,7 +544,7 @@ def manual_checking(request):
             print('sorry')
             pass
     return redirect('index')
-
+@login_required
 def manual_attendance(request):
     print(2)
     date=datetime.now().strftime("%Y-%m-%d")
@@ -537,13 +559,17 @@ def manual_attendance(request):
         phone=int(phone)
         try:
             profile = Profile.objects.get(pk=phone)
-            if profile.present!=True:
+            if profile.present!=True and profile.pk not in att[1]:
                 profile.present=True
                 att[0].remove(profile.pk)
                 att[1].append(profile.pk)
+                messages.success(request,str(profile.pk)+'present!')
                 # markAttendance(profile)
+            else:
+                messages.success(request,'Already present!')
         except:
             print('sorry')
+            messages.success(request,'Sorry! Try Again..')
             pass
     attendance[date]=att
     pickle_file=open('attendance.pickle', 'wb')
@@ -577,6 +603,10 @@ def pickel_attendance(dte):
         pickle_file=open('attendance.pickle', 'wb')
         pickle.dump(pickled_object, pickle_file )
         pickle_file.close()
+        history = LastFace.objects.all()
+        history.delete()
+        
     except EOFError:
         # print(pickled_object = pickle.load(pickle_file))
         pickled_object = {}
+
