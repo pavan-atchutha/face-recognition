@@ -1,7 +1,7 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% block content %}
-{% if user.is_authenticated %}
+{% if request.user.is_superuser %}
 
 
 {% for message in messages %}
@@ -100,7 +100,7 @@
 {%else%}
 
 
-<h1>Your session closed,Please Login Again!!!</h1>
+<center><h1>Access Denied!!!</h1></center>
 
 {% endif %}
 {% endblock content %}

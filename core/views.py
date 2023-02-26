@@ -66,11 +66,11 @@ def scan(request):
     date=datetime.now().strftime("%Y-%m-%d")
     profiles = Profile.objects.all()
     data = {}
-    data = pickle.loads(open('pickle_file.pickle',"rb").read())
+    data = pickle.loads(open('media/picklefiles/pickle_file.pickle',"rb").read())
     pickel_attendance(str(date))
-    attendance=pickle.loads(open('attendance.pickle',"rb").read())
-    print(data)
-    print(attendance)
+    attendance=pickle.loads(open('media/picklefiles/attendance.pickle',"rb").read())
+    #print(data)
+    #print(attendance)
     att=attendance[date]
     for profile in profiles:
         person = str(profile.phone)
@@ -121,19 +121,19 @@ def scan(request):
 
                         profile = Profile.objects.get(Q(image__icontains=name))
                         if profile.present == True or profile.pk in att[1]:
-                            messages.error(request,'Already present!')
+                            # messages.error(request,'Already present!')
                             pass
                         else:
-                            print(profile.shift)
+                            #print(profile.shift)
                             profile.present = True
                             winsound.PlaySound(sound, winsound.SND_ASYNC)
                             if len(att[0])==0:
-                                print('all attendance over!')
+                                #print('all attendance over!')
                                 messages.success(request, "All Attendance Over!!")
                                 break
                             att[0].remove((profile.pk))
                             att[1].append(profile.pk)
-                            print(attendance[date])
+                            #print(attendance[date])
                             # markAttendance(profile)
                             profile.save()
 
@@ -166,7 +166,7 @@ def scan(request):
             cv2.imshow('Video', frame)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
-                print("db sucessfully update!")
+                #print("db sucessfully update!")
                 messages.success(request, "attendance db Successfully updated!!")
                 break
     except:
@@ -175,7 +175,7 @@ def scan(request):
     video_capture.release()
     cv2.destroyAllWindows()
     attendance[date]=att
-    pickle_file=open('attendance.pickle', 'wb')
+    pickle_file=open('media/picklefiles/attendance.pickle', 'wb')
     pickle.dump(attendance, pickle_file )
     return HttpResponse('scaner closed', last_face)
 
@@ -225,18 +225,37 @@ def edit_profile(request,id):
     try:
         if request.method == 'POST':
             form = ProfileForm(request.POST,request.FILES,instance=profile)
+            #print(request.POST.get("phone"),profile.pk)
+            if int(request.POST.get("phone"))!=profile.pk:
+                messages.error(request,"Can't Change Your phone number!!")
+                return redirect('profiles')
+            #print(str(profile.image))
+            image_path=str(profile.image)
+            #print(123)
+            # if str(profile.image)!=str(request.FILES["image"]):
+            #     #print(12345)
+            #     os.remove("media/"+str(profile.image))
+            #     profile.image=request.FILES["image"]
+            #     os.remove("media/"+str(request.FILES["image"]))
             if form.is_valid():
-                print(404)
+                #print(404)
+                
                 #encoding_image(name,image)
                 form.save()
                 try:
                     encoding_image(str(int(request.POST.get("phone"))),request.FILES["image"])
+                    if image_path!=str(request.FILES["image"]):
+                        #print(12345)
+                        os.remove("media/"+image_path)
+                        #os.remove("media/"+str(request.FILES["image"]))
                     #encoding_image(request.POST.get("phone"),request.POST.get("image"))
                     messages.success(request,'update image Sucessfully!')
                 except:
                     messages.error(request,'update Sucessfully!')
                 return redirect('profiles')
-    except:
+    except Exception as e:
+        #print(1)
+        #print(e)
         messages.error(request,"Try again! add photo and phoneno")
     context={'form':form}
     return render(request,'core/add_profile.html',context)
@@ -244,7 +263,17 @@ def edit_profile(request,id):
 @login_required
 def delete_profile(request,id):
     profile = Profile.objects.get(pk=id)
+    image_path=profile.image
+    image_phone=str(profile.pk)
     profile.delete()
+    os.remove("media/"+str(image_path))
+    pickle_file = open('media/picklefiles/pickle_file.pickle', 'rb')
+    pickled_object = pickle.load(pickle_file)
+    if image_phone in pickled_object.keys():
+            del pickled_object[image_phone]
+            pickle_file1=open('media/picklefiles/pickle_file.pickle', 'wb')
+            pickle.dump(pickled_object, pickle_file1 )
+            pickle_file1.close()
     return redirect('profiles')
 
 @login_required
@@ -273,12 +302,12 @@ def reset(request):
 #     profiles = Profile.objects.all()
 #     today = now.strftime("%Y/%m/%d_%H:%M")
 #     filename = "media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
-#     print(401)
+#     #print(401)
 #     try:
-#         print(402)
+#         #print(402)
 #         with open(filename, 'a') as f:
-#             print(403)
-#             print(profile.first_name)
+#             #print(403)
+#             #print(profile.first_name)
 #             #for profile in nameList :
 #                 # now = datetime.now()
 #                 # dtString = now.strftime('%H:%M:%S')
@@ -286,7 +315,7 @@ def reset(request):
 #             f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
 #             f.close()
 #     except:
-#         # print(404)
+#         # #print(404)
 #         # for profile in profiles:
 #         #     if profile.present == True:
 #         #         profile.present = False
@@ -296,12 +325,12 @@ def reset(request):
 #         # history = LastFace.objects.all()
 #         # history.delete()
 #         with open(filename, 'w') as f:
-#             print(profile.first_name)
+#             #print(profile.first_name)
 #             #for profile in nameList :
 #                 # now = datetime.now()
 #                 # dtString = now.strftime('%H:%M:%S')
 #                 # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
-#             print('write')
+#             #print('write')
 #             f.writelines(f'first_name,last_name,date,hostelname,roomno,phone')
 #             # f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
 #             f.close()
@@ -309,13 +338,13 @@ def reset(request):
  
 def encoding_image(name,image):
     # Step 1: Open the pickle file in append mode
-    print(404)
+    #print(404)
     try:
-        print(os.path.getsize("pickle_file.pickle"))
-        if os.path.getsize("pickle_file.pickle") > 0:
-            print(1)
-            pickle_file = open('pickle_file.pickle', 'rb')
-            print(2)
+        #print(os.path.getsize("media/picklefiles/pickle_file.pickle"))
+        if os.path.getsize("media/picklefiles/pickle_file.pickle") > 0:
+            #print(1)
+            pickle_file = open('media/picklefiles/pickle_file.pickle', 'rb')
+            #print(2)
             pickled_object = pickle.load(pickle_file)
 
         else:
@@ -325,17 +354,17 @@ def encoding_image(name,image):
         if name in pickled_object.keys():
             del pickled_object[name]
         pickled_object[name]=person_face_encoding
-        pickle_file=open('pickle_file.pickle', 'wb')
+        pickle_file=open('media/picklefiles/pickle_file.pickle', 'wb')
         pickle.dump(pickled_object, pickle_file )
         pickle_file.close()
     except EOFError:
-        # print(pickled_object = pickle.load(pickle_file))
+        # #print(pickled_object = pickle.load(pickle_file))
         pickled_object = {}
 
 def camoff(request):
     global flag
     flag=1
-    print("db sucessfully update!")
+    #print("db sucessfully update!")
     messages.success(request, "attendance db Successfully updated!!")
     return redirect('index')
 
@@ -358,17 +387,17 @@ def signin(request):
             # now = datetime.now()
             # filename = "media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
             # try:
-            #     print(402)
+            #     #print(402)
             #     f=open(filename, 'r')
             # except:
-            #     print(404)
+            #     #print(404)
             #     profiles = Profile.objects.all()
             #     with open(filename, 'w') as f:
             #         #for profile in nameList :
             #             # now = datetime.now()
             #             # dtString = now.strftime('%H:%M:%S')
             #             # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
-            #         print('write')
+            #         #print('write')
             #         f.writelines(f'first_name,last_name,date,hostelname,roomno,phone')
             #         # f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
             #         f.close()
@@ -441,37 +470,37 @@ def signup(request):
 #     for profile in profiles:
 #         if profile.present == False:
 #             with open(file, 'a') as f:
-#                 print(profile.first_name)
+#                 #print(profile.first_name)
 #                 f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
 #                 f.close()
 
 
 @login_required
 def download(request):
-    print(request.method)
+    #print(request.method)
     if request.method=='GET':
         date=request.GET.get("date", "")
         present=request.GET.get("present","")
         hostel=request.GET["hostel"]
-        print(date)
-        print(present)
-        print(hostel)
+        #print(date)
+        #print(present)
+        #print(hostel)
         if present==None or hostel==None:
             return redirect('index')#####
         #pickle_attenance
-        attendance=pickle.loads(open('attendance.pickle',"rb").read())
-        print(date)
-        print(attendance)
+        attendance=pickle.loads(open('media/picklefiles/attendance.pickle',"rb").read())
+        #print(date)
+        #print(attendance)
         if date not in attendance.keys():
             messages.success(request,"attendance not found!!")
             return redirect('index')
         att=attendance[str(date)]
-        print(att)
+        #print(att)
         if present=="Absent":
             attendance_list=att[0]
         else:
             attendance_list=att[1]
-        file="attendance_documents/" +date+"_"+present+"_"+hostel+"_"+"file.csv"
+        file="media/attendance_documents/" +date+"_"+present+"_"+hostel+"_"+"file.csv"
         profiles = Profile.objects.all()
         with open(file, 'w') as f:
             f.writelines(f'first_name,last_name,date,hostelname,roomno,phone_number')
@@ -481,14 +510,14 @@ def download(request):
                 profile = Profile.objects.get(pk=i)
                 if profile.hostelname == hostel:
                     with open(file, 'a') as f:
-                        print(profile.first_name)
+                        #print(profile.first_name)
                         f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
                         f.close()
         else:
             for i in attendance_list:
                 profile = Profile.objects.get(pk=i)
                 with open(file, 'a') as f:
-                    print(profile.first_name)
+                    #print(profile.first_name)
                     f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
                     f.close()
         dt =pd.read_csv(file)
@@ -509,21 +538,22 @@ def download(request):
         #         messages.error(request, 'file not found.')
         #         return redirect('index')
         if hostel=="All":
+            dt=dt.sort_values('roomno')
             dt=dt.sort_values('hostelname')
         else:
             dt=dt.sort_values('roomno')
             dt=dt[dt['hostelname']==hostel]
-        print(dt)
-        dt.to_csv("Downloads/"+date+"_"+present+"_"+hostel+"_"+'file.csv')
+        #print(dt)
+        dt.to_csv("media/attendance_documents/"+date+"_"+present+"_"+hostel+"_"+'file.csv')
 
-        file_server = pathlib.Path("Downloads/"+date+"_"+present+"_"+hostel+"_"+'file.csv')
+        file_server = pathlib.Path("media/attendance_documents/"+date+"_"+present+"_"+hostel+"_"+'file.csv')
         if not file_server.exists():
             messages.error(request, 'file not found.')
         else:
             file_to_download = open(str(file_server), 'rb')
             response = FileResponse(file_to_download, content_type='application/force-download')
             response['Content-Disposition'] = 'inline; filename='+date+'"_"'+present+'"_"'+hostel+"_"+'file.csv'
-            print(123)
+            #print(123)
             return response
         
     return redirect('index')
@@ -534,23 +564,31 @@ def attendance(request):
 def manual_checking(request):
     if request.method=='GET':
         phone=request.GET['phone']
-        phone=int(phone)
+        if len(phone)<10 or len(phone)>10:
+            messages.error(request,"Check phone Number!")
+            return redirect('index')
+        try:
+            phone=int(phone)
+        except:
+            messages.error(request,"Check phone number!!")
+            return redirect('index')
         try:
             profile = Profile.objects.get(pk=phone)
-            print(1)
+            #print(1)
             context = {'profile': profile}
             return render(request,'core/manul_attendance.html',context)
         except:
-            print('sorry')
+            #print('sorry')
+            messages.error(request,"Check phone number!!")
             pass
     return redirect('index')
 @login_required
 def manual_attendance(request):
-    print(2)
+    #print(2)
     date=datetime.now().strftime("%Y-%m-%d")
-    attendance=pickle.loads(open('attendance.pickle',"rb").read())
-    print(date)
-    print(attendance)
+    attendance=pickle.loads(open('media/picklefiles/attendance.pickle',"rb").read())
+    #print(date)
+    #print(attendance)
     att=attendance[date]
     if len(att[0])==0:
         return redirect('index')
@@ -568,26 +606,26 @@ def manual_attendance(request):
             else:
                 messages.success(request,'Already present!')
         except:
-            print('sorry')
+            #print('sorry')
             messages.success(request,'Sorry! Try Again..')
             pass
     attendance[date]=att
-    pickle_file=open('attendance.pickle', 'wb')
+    pickle_file=open('media/picklefiles/attendance.pickle', 'wb')
     pickle.dump(attendance, pickle_file )
-    print("db sucessfully update!")
+    #print("db sucessfully update!")
     return redirect('index')
 
 
 
 def pickel_attendance(dte):
-    print(404)
+    #print(404)
     profiles = Profile.objects.all()
     try:
-        print(os.path.getsize("attendance.pickle"))
-        if os.path.getsize("attendance.pickle") > 0:
-            print(1)
-            pickle_file = open('attendance.pickle', 'rb')
-            print(2)
+        #print(os.path.getsize("media/picklefiles/attendance.pickle"))
+        if os.path.getsize("media/picklefiles/attendance.pickle") > 0:
+            #print(1)
+            pickle_file = open('media/picklefiles/attendance.pickle', 'rb')
+            #print(2)
             pickled_object = pickle.load(pickle_file)
 
         else:
@@ -600,13 +638,13 @@ def pickel_attendance(dte):
         for profile in profiles:
             attendance_list[0].append(profile.pk)
         pickled_object[dte]=attendance_list
-        pickle_file=open('attendance.pickle', 'wb')
+        pickle_file=open('media/picklefiles/attendance.pickle', 'wb')
         pickle.dump(pickled_object, pickle_file )
         pickle_file.close()
         history = LastFace.objects.all()
         history.delete()
         
     except EOFError:
-        # print(pickled_object = pickle.load(pickle_file))
+        # #print(pickled_object = pickle.load(pickle_file))
         pickled_object = {}
 

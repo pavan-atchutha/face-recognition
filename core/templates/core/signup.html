@@ -1,7 +1,6 @@
 {% load static %}
 {% if request.user.is_superuser %}
-<!DOCTYPE html>
-<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -52,6 +51,11 @@
         <button type="submit" class="btn">Sign Up</button>
     </form>
     </div>
+
+{%else%}
+
+
+<center><h1>Access Denied!!!</h1></center>
 </body>
 </html>
 {% endif %}
