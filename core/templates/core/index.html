@@ -2,7 +2,7 @@
 {% load static %}
 {% block content %}
 {% if user.is_authenticated %}
-
+<div class="main">
 {% for message in messages %}
     <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="background-color: aquamarine;">
         <strong>Message:</strong> {{ message }}
@@ -13,12 +13,12 @@
     {% endfor %}
 
 
-<div class="container emp-profile">
+<div class="container emp-profile" >
 
     <div class="row">
         <div class="col-md-3">
             <img src="{% static 'img/fcicon.png'%}" alt="" width="50%">
-            <h6 class="text-muted p-1"> FRS</h6>
+            <h6 class="text-muted p-1"> Hostel Attendance FRS</h6>
 
         </div>
         <div class="col-md-6">
@@ -32,17 +32,33 @@
             <a   href="{% url 'profiles' %}"><input type="submit" class="profile-edit-btn m-2 "
                         name="btnAddMore" value="Create & Edit Profiles" /></a>
                         {% endif%}
+                        <button type="submit" class="profile-edit-btn m-2 " onclick="manualchecking()">Manual Attendance</button>
             <a   href="{% url 'signout' %}"><input type="submit" class="profile-edit-btn m-2 "
                             name="btnAddMore" value="SignOut" /></a>
+            
         </div>
     </div>
-    <div>
+    <div id="manualchecking" style="display: none;">
         <form method='get' action="/index/manual_checking">
-        <h1>Manual Attendance</h1>
+        <h4>Manual Attendance</h4>
         <p>Enter phone :</p><input type="text" name="phone"><br><br>
-        <a href="{% url 'manual_checking'  %}"><button type="submit" >Present</button></a>
+        <a href="{% url 'manual_checking'  %}"><button type="submit" onclick="manualchecking()" >Present</button></a>
         </form>
     </div>
+    <script>
+        function manualchecking() {
+          var x = document.getElementById("manualchecking");
+          if (x.style.display === "none") {
+             x.style.display = "block";}
+        //  } else {
+        //      x.style.display = "none";
+        //    }
+        }
+        // function manualchecking_close() {
+        //   var x = document.getElementById("manualchecking");
+        //   x.style.display = "none";
+        // }
+    </script>
     <hr>
     <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">
@@ -159,6 +175,7 @@
 
 
 <h1>Your session closed,Please Login Again!!!</h1>
+</div>
 
 {% endif %}
 

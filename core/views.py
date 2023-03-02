@@ -71,9 +71,12 @@ def scan(request):
     date=datetime.now().strftime("%Y-%m-%d")
     profiles = Profile.objects.all()
     data = {}
-    data = pickle.loads(open('media/picklefiles/pickle_file.pickle',"rb").read())
+    attendance={}
+    if os.path.getsize("media/picklefiles/pickle_file.pickle") > 0:
+        data = pickle.loads(open('media/picklefiles/pickle_file.pickle',"rb").read())
     pickel_attendance(str(date))
-    attendance=pickle.loads(open('media/picklefiles/attendance.pickle',"rb").read())
+    if os.path.getsize("media/picklefiles/attendance.pickle") > 0:
+        attendance=pickle.loads(open('media/picklefiles/attendance.pickle',"rb").read())
     #print(data)
     #print(attendance)
     att=attendance[date]
@@ -269,11 +272,10 @@ def edit_profile(request,id):
 @login_required
 def delete_profile(request,id):
     profile = Profile.objects.get(pk=id)
-    try:
+    del_dict={}
+    if os.path.getsize("media/picklefiles/delete_user.pickle") > 0:
         pickle_del_file = open('media/picklefiles/delete_user.pickle', 'rb')
         del_dict=pickle.load(pickle_del_file)
-    except:
-        del_dict={}
     del_dict[profile.pk]=""+f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}'
     pickle_del_file1 = open('media/picklefiles/delete_user.pickle', 'wb')
     pickle.dump(del_dict, pickle_del_file1)
@@ -282,8 +284,10 @@ def delete_profile(request,id):
     image_phone=str(profile.pk)
     profile.delete()
     os.remove("media/"+str(image_path))
-    pickle_file = open('media/picklefiles/pickle_file.pickle', 'rb')
-    pickled_object = pickle.load(pickle_file)
+    pickled_object={}
+    if os.path.getsize("media/picklefiles/pickle_file.pickle") > 0:
+        pickle_file = open('media/picklefiles/pickle_file.pickle', 'rb')
+        pickled_object = pickle.load(pickle_file)
     if image_phone in pickled_object.keys():
             del pickled_object[image_phone]
             pickle_file1=open('media/picklefiles/pickle_file.pickle', 'wb')
@@ -424,7 +428,7 @@ def signin(request):
             #             pass
             #     history = LastFace.objects.all()
             #     history.delete()
-            return render(request, 'core/index.html')
+            return redirect('index')
             # return redirect('index_call')
         else:
             messages.error(request, "Bad Credentials!!")
@@ -504,10 +508,13 @@ def download(request):
         if present==None or hostel==None:
             return redirect('index')#####
         #pickle_attenance
-        attendance=pickle.loads(open('media/picklefiles/attendance.pickle',"rb").read())
-        try:
+        if os.path.getsize("media/picklefiles/attendance.pickle") > 0:
+            attendance=pickle.loads(open('media/picklefiles/attendance.pickle',"rb").read())
+        else:
+            attendance={}
+        if os.path.getsize("media/picklefiles/delete_user.pickle") > 0:
             del_list=pickle.loads(open('media/picklefiles/delete_user.pickle',"rb").read())
-        except:
+        else:
             del_list={}
         #print(date)
         #print(attendance)
@@ -613,36 +620,41 @@ def manual_checking(request):
             return render(request,'core/manul_attendance.html',context)
         except:
             #print('sorry')
-            messages.error(request,"Check phone number!!")
+            messages.error(request,"Check phone number,Try Again!!")
             pass
     return redirect('index')
 @login_required
 def manual_attendance(request):
     #print(2)
     date=datetime.now().strftime("%Y-%m-%d")
-    attendance=pickle.loads(open('media/picklefiles/attendance.pickle',"rb").read())
+    attendance={}
+    if os.path.getsize("media/picklefiles/attendance.pickle") > 0:
+        attendance=pickle.loads(open('media/picklefiles/attendance.pickle',"rb").read())
     #print(date)
     #print(attendance)
     att=attendance[date]
     if len(att[0])==0:
         return redirect('index')
-    if request.method=='POST':
-        phone=request.POST['phone']
-        phone=int(phone)
-        try:
-            profile = Profile.objects.get(pk=phone)
-            if profile.present!=True and profile.pk not in att[1]:
-                profile.present=True
-                att[0].remove(profile.pk)
-                att[1].append(profile.pk)
-                messages.success(request,str(profile.pk)+'present!')
-                # markAttendance(profile)
-            else:
-                messages.success(request,'Already present!')
-        except:
-            #print('sorry')
-            messages.success(request,'Sorry! Try Again..')
-            pass
+    try:
+        if request.method=='POST':
+            phone=request.POST['phone']
+            phone=int(phone)
+            try:
+                profile = Profile.objects.get(pk=phone)
+                if profile.present!=True and profile.pk not in att[1]:
+                    profile.present=True
+                    att[0].remove(profile.pk)
+                    att[1].append(profile.pk)
+                    messages.success(request,str(profile.pk)+'present!')
+                    # markAttendance(profile)
+                else:
+                    messages.success(request,'Already present!')
+            except:
+                #print('sorry')
+                messages.success(request,'Sorry! Try Again..')
+                pass
+    except:
+        messages.success(request,'Check phone number,Try again !!')
     attendance[date]=att
     pickle_file=open('media/picklefiles/attendance.pickle', 'wb')
     pickle.dump(attendance, pickle_file )

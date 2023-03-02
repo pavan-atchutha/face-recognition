@@ -6,6 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/logo.png' %}">
     <link rel="stylesheet" href="{% static 'css/style_sign.css' %}">
     <script src="{% static 'script.js' %}"></script>
 </head>
@@ -14,12 +15,19 @@
     input:-webkit-autofill:hover, 
     input:-webkit-autofill:focus, 
     input:-webkit-autofill:active{
-        -webkit-box-shadow: 0 0 0 30px #737e93ab inset !important;
+        -webkit-box-shadow: 0 0 0 30px #6a7385a1 inset !important;
+    }
+    .watermark{
+        width: 140px;
+        height: 100px;
+        margin: auto;
+        position:inherit;
+        margin-left: 40px;
     }
 </style>
 
 
-<body>
+<body >
     <header style="position:fixed;top: 3px;">
         {% for message in messages %}
         <div  role="alert" >
@@ -30,14 +38,14 @@
         </div>
         {% endfor %}
     </header>
-
     <div class="container">
+           <centre><img class="watermark" src="{% static 'img/logo.png'%}" alt=""></centre> 
     <h1>Log In </h1>
     <form method="post" action="/signin" class="mb-2">
         {% csrf_token %}
         <div class="form-control">
             
-            <input  type="text"  id="username" name="username" Required>
+            <input  style="color:'white'" type="text"  id="username" name="username" Required >
             <label for="username"><span>Username</span></label>
         </div>
         <div class="form-control">

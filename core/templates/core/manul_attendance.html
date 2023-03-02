@@ -2,7 +2,9 @@
 {% load static %}
 {% block content %}
 {% if user.is_authenticated %}
-
+<head>
+    <link rel="icon" type="image/x-icon" href="static/img/logo.png">
+</head>
 
 <header style="top: 3px;">
     {% for message in messages %}
