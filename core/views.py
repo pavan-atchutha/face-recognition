@@ -25,6 +25,9 @@ import pathlib
 from django.http import FileResponse
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
+from django.views.decorators.csrf import ensure_csrf_cookie,csrf_protect
+
+
 
 
 last_face = 'no_face'
@@ -35,6 +38,8 @@ sound = os.path.join(sound_folder, 'beep.wav')
 nameList=[]
 flag=0
 
+@ensure_csrf_cookie
+@csrf_protect
 @login_required
 def index(request):
     scanned = LastFace.objects.all().order_by('date').reverse()
@@ -210,8 +215,9 @@ def add_profile(request):
             form = ProfileForm(request.POST,request.FILES)
             if form.is_valid():
                 #encoding_image(name,image)
-                form.save()
                 encoding_image(str(int(request.POST.get("phone"))),request.FILES["image"])
+                form.save()
+                # encoding_image(str(int(request.POST.get("phone"))),request.FILES["image"])
                 return redirect('profiles')
     except:
         messages.error(request,"Try again!add photo and phoneno")
@@ -263,6 +269,15 @@ def edit_profile(request,id):
 @login_required
 def delete_profile(request,id):
     profile = Profile.objects.get(pk=id)
+    try:
+        pickle_del_file = open('media/picklefiles/delete_user.pickle', 'rb')
+        del_dict=pickle.load(pickle_del_file)
+    except:
+        del_dict={}
+    del_dict[profile.pk]=""+f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}'
+    pickle_del_file1 = open('media/picklefiles/delete_user.pickle', 'wb')
+    pickle.dump(del_dict, pickle_del_file1)
+    pickle_del_file1.close()
     image_path=profile.image
     image_phone=str(profile.pk)
     profile.delete()
@@ -410,6 +425,7 @@ def signin(request):
             #     history = LastFace.objects.all()
             #     history.delete()
             return render(request, 'core/index.html')
+            # return redirect('index_call')
         else:
             messages.error(request, "Bad Credentials!!")
             return redirect('home')
@@ -451,7 +467,7 @@ def signup(request):
         myuser.lname=lname
         myuser.fname=fname
         myuser.save()  
-        return redirect('signin')
+        return render(request,'core/index.html')
         
         
     return render(request, "core/signup.html")
@@ -489,6 +505,10 @@ def download(request):
             return redirect('index')#####
         #pickle_attenance
         attendance=pickle.loads(open('media/picklefiles/attendance.pickle',"rb").read())
+        try:
+            del_list=pickle.loads(open('media/picklefiles/delete_user.pickle',"rb").read())
+        except:
+            del_list={}
         #print(date)
         #print(attendance)
         if date not in attendance.keys():
@@ -507,19 +527,33 @@ def download(request):
             f.close()
         if hostel!="All":
             for i in attendance_list:
-                profile = Profile.objects.get(pk=i)
-                if profile.hostelname == hostel:
+                try:
+                    profile = Profile.objects.get(pk=i)
+                    if profile.hostelname == hostel:
+                        with open(file, 'a') as f:
+                            #print(profile.first_name)
+                            f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
+                            f.close()
+                except:
+                    with open(file, 'a') as f:
+                            #print(profile.first_name)
+                            f.writelines(del_list[i])
+                            f.close()
+                    pass
+        else:
+            for i in attendance_list:
+                try:
+                    profile = Profile.objects.get(pk=i)
                     with open(file, 'a') as f:
                         #print(profile.first_name)
                         f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
                         f.close()
-        else:
-            for i in attendance_list:
-                profile = Profile.objects.get(pk=i)
-                with open(file, 'a') as f:
-                    #print(profile.first_name)
-                    f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
-                    f.close()
+                except:
+                    with open(file, 'a') as f:
+                            #print(profile.first_name)
+                            f.writelines(del_list[i])
+                            f.close()
+                    pass
         dt =pd.read_csv(file)
         # #file based attendance
         # if present=="Absent":
@@ -648,3 +682,6 @@ def pickel_attendance(dte):
         # #print(pickled_object = pickle.load(pickle_file))
         pickled_object = {}
 
+
+# def index_call(request):
+#     return render(request,'core/index.html')
