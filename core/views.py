@@ -30,7 +30,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie,csrf_protect
 
 
 
-last_face = 'no_face'
+last_face = 0
 current_path = os.path.dirname(__file__)
 sound_folder = os.path.join(current_path, 'sound/')
 face_list_file = os.path.join(current_path, 'face_list.txt')
@@ -62,7 +62,8 @@ def ajax(request):
 
 @login_required
 def scan(request):
-
+    name=0
+    name1='Unknown!!'
     global last_face
     global flag
     flag=0
@@ -86,7 +87,7 @@ def scan(request):
         # image_of_person = face_recognition.load_image_file(f'media/{person}')
         # person_face_encoding = face_recognition.face_encodings(image_of_person)[0]
         known_face_encodings.append(data[person])
-        known_face_names.append(person_name)
+        known_face_names.append(profile.phone)
 
 
     video_capture = cv2.VideoCapture(0)
@@ -95,91 +96,84 @@ def scan(request):
     face_encodings = []
     face_names = []
     process_this_frame = True
-    try:
-        while True:
-            if(flag==1):
-                break
-            ret, frame = video_capture.read()
-            small_frame = cv2.resize(frame, (0, 0),None,fx=0.25, fy=0.25)
-            # rgb_small_frame = small_frame[:, :, ::-1]
-            rgb_small_frame=cv2.cvtColor(small_frame,cv2.COLOR_BGR2RGB)
-
-            if process_this_frame:
-                face_locations = face_recognition.face_locations(rgb_small_frame,number_of_times_to_upsample=2)
-                face_encodings = face_recognition.face_encodings(rgb_small_frame,model='large',known_face_locations=face_locations )
-
-                face_names = []
-                for face_encoding in face_encodings:
-                    mat = False
-
-                    matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
-                    name = "Unknown"
-
-                    face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
-                    best_match_index = np.argmin(face_distances)
-                    if(face_distances[best_match_index] <= 0.38):
-                        mat = True
-                    if mat == True:
-                        name =  known_face_names[best_match_index]
-                    elif mat ==False:
+    
+    while True:
+        if(flag==1):
+            break
+        ret, frame = video_capture.read()
+        small_frame = cv2.resize(frame, (0, 0),None,fx=0.25, fy=0.25)
+        # rgb_small_frame = small_frame[:, :, ::-1]
+        rgb_small_frame=cv2.cvtColor(small_frame,cv2.COLOR_BGR2RGB)
+        if process_this_frame:
+            face_locations = face_recognition.face_locations(rgb_small_frame,number_of_times_to_upsample=2)
+            face_encodings = face_recognition.face_encodings(rgb_small_frame,model='large',known_face_locations=face_locations )
+            face_names = []
+            for face_encoding in face_encodings:
+                mat = False
+                matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+                name = 0
+                name1="Unknown!!"
+                face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+                best_match_index = np.argmin(face_distances)
+                if(face_distances[best_match_index] <= 0.38):
+                    mat = True
+                if mat == True:
+                    name =  known_face_names[best_match_index]
+                elif mat ==False:
+                
+                    name = 0
+                if matches[best_match_index] and mat:
+                    print(12345)
+                    name = known_face_names[best_match_index]
+                    profile = Profile.objects.get(pk=name)
+                    name1=profile.first_name
+                    if profile.present == True or profile.pk in att[1]:
+                        # messages.error(request,'Already present!')
+                        pass
+                    else:
+                        #print(profile.shift)
+                        profile.present = True
+                        winsound.PlaySound(sound, winsound.SND_ASYNC)
+                        if len(att[0])==0:
+                            #print('all attendance over!')
+                            messages.success(request, "All Attendance Over!!")
+                            break
+                        att[0].remove((profile.pk))
+                        att[1].append(profile.pk)
+                        #print(attendance[date])
+                        # markAttendance(profile)
+                        profile.save()
                     
-                        name = "Unknown!"
-                    if matches[best_match_index] and mat:
-                        name = known_face_names[best_match_index]
-
-                        profile = Profile.objects.get(Q(image__icontains=name))
-                        if profile.present == True or profile.pk in att[1]:
-                            # messages.error(request,'Already present!')
-                            pass
-                        else:
-                            #print(profile.shift)
-                            profile.present = True
-                            winsound.PlaySound(sound, winsound.SND_ASYNC)
-                            if len(att[0])==0:
-                                #print('all attendance over!')
-                                messages.success(request, "All Attendance Over!!")
-                                break
-                            att[0].remove((profile.pk))
-                            att[1].append(profile.pk)
-                            #print(attendance[date])
-                            # markAttendance(profile)
-                            profile.save()
-
-                        if last_face != name:
-                            last_face = LastFace(last_face=name)
-                            last_face.save()
-                            last_face = name
-                            # winsound.PlaySound(sound, winsound.SND_ASYNC)
-                        else:
-                            pass
-
-                    face_names.append(name)
-
-            process_this_frame = not process_this_frame
-
-            for (top, right, bottom, left), name in zip(face_locations, face_names):
-                top *= 4
-                right *= 4
-                bottom *= 4
-                left *= 4
-
-                cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
-
-                cv2.rectangle(frame, (left, bottom - 35),
-                              (right, bottom), (0, 0, 255), cv2.FILLED)
-                font = cv2.FONT_HERSHEY_DUPLEX
-                cv2.putText(frame, name, (left + 6, bottom - 6),
-                            font, 0.5, (255, 255, 255), 1)
-
-            cv2.imshow('Video', frame)
-
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                #print("db sucessfully update!")
-                messages.success(request, "attendance db Successfully updated!!")
-                break
-    except:
-        messages.error(request,"Check person Credentials And Try again!")
-
+                    if last_face != name and name != 0:
+                        print(123)
+                        last_face = LastFace(last_face=name)
+                        print(last_face)
+                        last_face.save()
+                        last_face = name
+                        # winsound.PlaySound(sound, winsound.SND_ASYNC)
+                    else:
+                        pass
+                print(name)
+                print(last_face != name)
+                print(last_face)
+                face_names.append(name1)
+        process_this_frame = not process_this_frame
+        for (top, right, bottom, left), name in zip(face_locations, face_names):
+            top *= 4
+            right *= 4
+            bottom *= 4
+            left *= 4
+            cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+            cv2.rectangle(frame, (left, bottom - 35),
+                          (right, bottom), (0, 0, 255), cv2.FILLED)
+            font = cv2.FONT_HERSHEY_DUPLEX
+            cv2.putText(frame, str(name), (left + 6, bottom - 6),
+                        font, 0.5, (255, 255, 255), 1)
+        cv2.imshow('Video', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            #print("db sucessfully update!")
+            messages.success(request, "attendance db Successfully updated!!")
+            break
     video_capture.release()
     cv2.destroyAllWindows()
     attendance[date]=att
@@ -198,11 +192,13 @@ def profiles(request):
 @login_required
 def details(request):
     try:
-        last_face = LastFace.objects.last()
-        profile = Profile.objects.get(Q(image__icontains=last_face))
-    except:
+        last_face = LastFace.objects.last().last_face
+        profile = Profile.objects.get(pk=last_face)
+    except Exception as e:
+        print(e)
         last_face = None
         profile = None
+        print(404)
 
     context = {
         'profile': profile,
