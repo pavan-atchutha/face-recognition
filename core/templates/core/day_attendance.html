@@ -3,7 +3,6 @@
 {% block content %}
 {% if user.is_authenticated %}
 
-
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
   <head>
@@ -24,15 +23,21 @@
       </div>
       {% endfor %}
   </header>
-    <form method="" action="attendanceview/">
+    <form method="" action="download/">
     <div class="wrapper">
       <header>
-        <h1>Month Attendance </h1>
+        <h1>Download Attendance </h1>
         <p>Enter date and hostel name</p>
       </header>
       <div class="form">
-        <p>From :</p><input type="date" name="date1" Required><br><br>
-        <p>To :</p><input type="date" name="date2" Required><br><br>
+        <p>Enter date :</p><input type="date" name="date" Required><br><br>
+        <span> &nbsp; Status :    </span>
+        <select name="present" id="present" required>
+          <option value="">None</option>
+          <option value="Absent">Absent</option>
+          <option value="Present">Present</option>
+          <option value="Both">Both</option>
+        </select>
         <span> &nbsp; Hostel :    </span>
         <select name="hostel" id="hostel" required>
           <option value="">None</option>
@@ -54,7 +59,7 @@
           <option value="view">view</option>
           <option value="download">Download</option>
         </select>
-        <a href="{% url 'attendanceview'  %}"><button type="submit" >Submit</button></a><br>
+        <a href="{% url 'download'  %}"><button type="submit" >Download</button></a><br>
       </div>
     </div>
   </form>

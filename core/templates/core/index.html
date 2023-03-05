@@ -103,7 +103,8 @@
             </table>
             <a href="{% url 'reset' %}"><button type="button" class="btn btn-outline-secondary">Reset</button></a>
             <a href="{% url 'index' %}"><button type="button" class="btn btn-outline-primary">Refresh</button></a>
-            <a href="{% url 'attendance'  %}"><button type="button" class="btn btn-outline-primary">Download</button></a>
+            <a href="{% url 'month_attendance'  %}"><button type="button" class="btn btn-outline-primary">Month Attendance</button></a>
+            <a href="{% url 'day_attendance'  %}"><button type="button" class="btn btn-outline-primary">Day Attendance</button></a>
             {% if request.user.is_superuser %}
             <a href="/signup"><button type="button" class="btn btn-outline-primary">Add Warden</button></a>
             {% endif%}

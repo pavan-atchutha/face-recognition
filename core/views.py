@@ -17,6 +17,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 import pandas as pd
 from datetime import datetime
+import datetime as dta
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -26,7 +27,6 @@ from django.http import FileResponse
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from django.views.decorators.csrf import ensure_csrf_cookie,csrf_protect
-
 
 
 
@@ -272,7 +272,7 @@ def delete_profile(request,id):
     if os.path.getsize("media/picklefiles/delete_user.pickle") > 0:
         pickle_del_file = open('media/picklefiles/delete_user.pickle', 'rb')
         del_dict=pickle.load(pickle_del_file)
-    del_dict[profile.pk]=""+f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}'
+    del_dict[profile.pk]={'first_name':profile.first_name,'last_name':profile.last_name,'date':profile.date,'hostelname':profile.hostelname,'hosteltype':profile.hosteltype,'roomno':profile.roomno,'phone':profile.phone}
     pickle_del_file1 = open('media/picklefiles/delete_user.pickle', 'wb')
     pickle.dump(del_dict, pickle_del_file1)
     pickle_del_file1.close()
@@ -498,6 +498,8 @@ def download(request):
         date=request.GET.get("date", "")
         present=request.GET.get("present","")
         hostel=request.GET["hostel"]
+        hosteltype=request.GET["hosteltype"]
+        option=request.GET["option"]
         #print(date)
         #print(present)
         #print(hostel)
@@ -518,45 +520,69 @@ def download(request):
             messages.success(request,"attendance not found!!")
             return redirect('index')
         att=attendance[str(date)]
+        att_db=att[2][0]
         #print(att)
         if present=="Absent":
             attendance_list=att[0]
         else:
             attendance_list=att[1]
         file="media/attendance_documents/" +date+"_"+present+"_"+hostel+"_"+"file.csv"
-        profiles = Profile.objects.all()
         with open(file, 'w') as f:
             f.writelines(f'first_name,last_name,date,hostelname,roomno,phone_number')
             f.close()
-        if hostel!="All":
-            for i in attendance_list:
-                try:
-                    profile = Profile.objects.get(pk=i)
-                    if profile.hostelname == hostel:
-                        with open(file, 'a') as f:
-                            #print(profile.first_name)
-                            f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
-                            f.close()
-                except:
+        for i in attendance_list:
+            att_user=att_db[i]
+            u=[]
+            try:
+                if hostel=='All' and hosteltype=='All':
+                    u.append(str(att_user['first_name']))
+                    u.append(str(att_user['last_name']))
+                    u.append(str(att_user['phone']))
+                    u.append(str(att_user['hostelname']))
+                    u.append(str(att_user['hosteltype']))
+                    u.append(str(att_user['roomno']))
                     with open(file, 'a') as f:
-                            #print(profile.first_name)
-                            f.writelines(del_list[i])
-                            f.close()
-                    pass
-        else:
-            for i in attendance_list:
-                try:
-                    profile = Profile.objects.get(pk=i)
-                    with open(file, 'a') as f:
-                        #print(profile.first_name)
-                        f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
+                        f.writelines('\n'+",".join(u))
                         f.close()
-                except:
-                    with open(file, 'a') as f:
-                            #print(profile.first_name)
-                            f.writelines(del_list[i])
+                elif hosteltype=='All':
+                    if att_user['hostelname'] == hostel:
+                        u.append(str(att_user['first_name']))
+                        u.append(str(att_user['last_name']))
+                        u.append(str(att_user['phone']))
+                        u.append(str(att_user['hostelname']))
+                        u.append(str(att_user['hosteltype']))
+                        u.append(str(att_user['roomno']))
+                        with open(file, 'a') as f:
+                            f.writelines('\n'+",".join(u))
                             f.close()
-                    pass
+                elif hostel=="All":
+                    if att_user['hosteltype'] == hosteltype:
+                        u.append(str(att_user['first_name']))
+                        u.append(str(att_user['last_name']))
+                        u.append(str(att_user['phone']))
+                        u.append(str(att_user['hostelname']))
+                        u.append(str(att_user['hosteltype']))
+                        u.append(str(att_user['roomno']))
+                        with open(file, 'a') as f:
+                            f.writelines('\n'+",".join(u))
+                            f.close()
+            except Exception as e:
+                print(e)
+                pass
+        # else:
+        #     for i in attendance_list:
+        #         try:
+        #             profile = Profile.objects.get(pk=i)
+        #             with open(file, 'a') as f:
+        #                 #print(profile.first_name)
+        #                 f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
+        #                 f.close()
+        #         except:
+        #             with open(file, 'a') as f:
+        #                     #print(profile.first_name)
+        #                     f.writelines(del_list[i])
+        #                     f.close()
+        #             pass
         dt =pd.read_csv(file)
         # #file based attendance
         # if present=="Absent":
@@ -582,21 +608,27 @@ def download(request):
             dt=dt[dt['hostelname']==hostel]
         #print(dt)
         dt.to_csv("media/attendance_documents/"+date+"_"+present+"_"+hostel+"_"+'file.csv')
+        # return HttpResponse(dt.to_html())
 
         file_server = pathlib.Path("media/attendance_documents/"+date+"_"+present+"_"+hostel+"_"+'file.csv')
         if not file_server.exists():
             messages.error(request, 'file not found.')
         else:
-            file_to_download = open(str(file_server), 'rb')
-            response = FileResponse(file_to_download, content_type='application/force-download')
-            response['Content-Disposition'] = 'inline; filename='+date+'"_"'+present+'"_"'+hostel+"_"+'file.csv'
-            #print(123)
-            return response
-        
+            if option=='download':
+                file_to_download = open(str(file_server), 'rb')
+                response = FileResponse(file_to_download, content_type='application/force-download')
+                response['Content-Disposition'] = 'inline; filename='+date+'"_"'+present+'"_"'+hostel+"_"+hosteltype+'file.csv'
+                #print(123)
+                return response
+            if option=='view':
+                return HttpResponse(dt.to_html())
     return redirect('index')
 @login_required
-def attendance(request):
+def month_attendance(request):
     return render(request,'core/attendance.html')
+@login_required
+def day_attendance(request):
+    return render(request,'core/day_attendance.html')
 @login_required
 def manual_checking(request):
     if request.method=='GET':
@@ -676,9 +708,12 @@ def pickel_attendance(dte):
             l1=pickled_object[dte]
             if (len(l1[0])+len(l1[1]))==len(profiles):
                 return
-        attendance_list=[[],[]]
+        attendance_list=[[],[],[]]
+        d={}
         for profile in profiles:
             attendance_list[0].append(profile.pk)
+            d[profile.pk]={'first_name':profile.first_name,'last_name':profile.last_name,'date':profile.date,'hostelname':profile.hostelname,'hosteltype':profile.hosteltype,'roomno':profile.roomno,'phone':profile.phone}
+            attendance_list[2].append(d)
         pickled_object[dte]=attendance_list
         pickle_file=open('media/picklefiles/attendance.pickle', 'wb')
         pickle.dump(pickled_object, pickle_file )
@@ -693,3 +728,147 @@ def pickel_attendance(dte):
 
 # def index_call(request):
 #     return render(request,'core/index.html')
+@login_required
+def attendanceview(request):
+    try:
+        if request.method=='GET':
+            date1=datetime.strptime(request.GET.get("date1", ""), "%Y-%m-%d").date()
+            date2=datetime.strptime(request.GET.get("date2", ""), "%Y-%m-%d").date()
+            present=request.GET.get("present","")
+            hostel=request.GET["hostel"]
+            hosteltype=request.GET["hosteltype"]
+            option=request.GET["option"]
+            print(hostel)
+            print(hosteltype)
+            if present==None or hostel==None :
+                return redirect('index')#####
+            #pickle_attenance
+            if os.path.getsize("media/picklefiles/attendance.pickle") > 0:
+                attendance=pickle.loads(open('media/picklefiles/attendance.pickle',"rb").read())
+            else:
+                attendance={}
+            if os.path.getsize("media/picklefiles/delete_user.pickle") > 0:
+                del_list=pickle.loads(open('media/picklefiles/delete_user.pickle',"rb").read())
+            else:
+                del_list={}
+            
+            delta = dta.timedelta(days=1)
+            datelist=[]
+            l=[]
+            while (date1 <= date2):
+                f=date1
+                datelist.append(date1)
+                l.append(f.strftime("%Y-%m-%d"))
+                date1 += delta
+            r=[]
+            for i in l:
+                if i in attendance.keys():
+                    att=attendance[i]
+                    r.extend(att[0])
+                    r.extend(att[1])
+                    r=list(set(r))
+            print(r)
+            file="media/attendance_documents/" +date1.strftime("%Y-%m-%d")+"to"+date2.strftime("%Y-%m-%d")+"_"+present+"_"+hostel+"_"+hosteltype+"file.csv"
+            with open(file, 'w') as f:
+                f.writelines('first_name,last_name,phone,hostelname,hosteltype,roomno,'+",".join(l)+',total_present_days,total_absent_days')
+                f.close()
+            for student in r:
+                s=[]
+                u=[]
+                print(l)
+                for date in l:
+                    print(date not in attendance.keys())
+                    if date not in attendance.keys():
+                        print(123456)
+                        s.append('No attendance')
+                    else:
+                        att=attendance[str(date)]
+                        att_db=att[2][0]
+                        att_user=att_db[student]
+                        if hostel=='All' and hosteltype=='All':
+                            # 'first_name':profile.first_name,'last_name':profile.last_name,'date':profile.date,'hostelname':profile.hostelname,'hosteltype':profile.hosteltype,'roomno':profile.roomno,'phone':profile.phone
+                            if len(u)==0:
+                                u.append(str(att_user['first_name']))
+                                u.append(str(att_user['last_name']))
+                                u.append(str(att_user['phone']))
+                                u.append(str(att_user['hostelname']))
+                                u.append(str(att_user['hosteltype']))
+                                u.append(str(att_user['roomno']))
+                            print(34)
+                            print((att_user['phone']))
+                            print(att)
+                            print((att_user['phone']) in att[1])
+                            if (att_user['phone']) in att[1]:
+                                s.append("Present")
+                            elif (att_user['phone']) in att[0]:
+                                s.append("Absent")
+                        elif hosteltype=='All':
+                            if att_user['hostelname']==hostel:
+                                if len(u)==0:
+                                    u.append(str(att_user['first_name']))
+                                    u.append(str(att_user['last_name']))
+                                    u.append(str(att_user['phone']))
+                                    u.append(str(att_user['hostelname']))
+                                    u.append(str(att_user['hosteltype']))
+                                    u.append(str(att_user['roomno']))
+                                if att_user['phone'] in att[1]:
+                                    s.append("Present")
+                                elif att_user['phone'] in att[0]:
+                                    s.append("Absent")
+                            else:
+                                s.append('Shifted')
+                        elif hostel=='All':
+                            if att_user['hosteltype']==hosteltype:
+                                if len(u)==0:
+                                    u.append(str(att_user['first_name']))
+                                    u.append(str(att_user['last_name']))
+                                    u.append(str(att_user['phone']))
+                                    u.append(str(att_user['hostelname']))
+                                    u.append(str(att_user['hosteltype']))
+                                    u.append(str(att_user['roomno']))
+                                if att_user['phone'] in att[1]:
+                                    s.append("Present")
+                                elif att_user['phone'] in att[0]:
+                                    s.append("Absent")
+                            else:
+                                s.append('Shifted')
+                        else:
+                            if att_user['hostelname']==hostel and att_user['hosteltype']==hosteltype:
+                                if len(u)==0:
+                                    u.append(str(att_user['first_name']))
+                                    u.append(str(att_user['last_name']))
+                                    u.append(str(att_user['phone']))
+                                    u.append(str(att_user['hostelname']))
+                                    u.append(str(att_user['hosteltype']))
+                                    u.append(str(att_user['roomno']))
+                                if att_user['phone'] in att[1]:
+                                    s.append("Present")
+                                elif att_user['phone'] in att[0]:
+                                    s.append("Absent")
+                            else:
+                                s.append('Shifted')
+                s.append(str(s.count("Present")))
+                s.append(str(s.count("Absent")))
+                u.extend(s)
+                s=u
+                if ("Present" in s) or ("Absent" in s):
+                    with open(file, 'a') as f:
+                        print(s)
+                        f.writelines("\n"+",".join(s))
+                        f.close()
+            dt=pd.read_csv(file)
+            dt=dt.sort_values('roomno')
+            dt=dt.sort_values('hostelname')
+            print(dt)
+            if option=='view':
+                return HttpResponse(dt.to_html())
+            if option=='download':
+                file_to_download = open(str(file), 'rb')
+                response = FileResponse(file_to_download, content_type='application/force-download')
+                response['Content-Disposition'] = 'inline; filename='+file
+                return response
+            return HttpResponse(dt.to_html())
+    except Exception as e:
+        print(e)
+        messages.error(request,'Something Wrong!!')
+        return redirect('index')

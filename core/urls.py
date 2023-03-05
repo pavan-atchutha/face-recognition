@@ -25,8 +25,10 @@ urlpatterns = [
 
     path('camoff/',camoff,name='camoff'),
 
-    path('attendance/',attendance,name='attendance'),
+    path('attendance/',day_attendance,name='day_attendance'),
+    path('month_attendance/',month_attendance,name='month_attendance'),
     path('attendance/download/',download,name='download'),
+    path('month_attendance/attendanceview/',attendanceview,name='attendanceview'),
 
     path('index/manual_checking',manual_checking,name='manual_checking'),
     path('index/manual_attendance',manual_attendance,name='manual_attendance')
