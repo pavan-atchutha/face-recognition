@@ -24,6 +24,151 @@
       </div>
       {% endfor %}
   </header>
+  <div class="form">
+  <div id="attendance">
+    <button type="button"  onclick="studentreport()">Student Attendance</button>
+    <script>
+      function studentreport() {
+        var x = document.getElementById("studentreport");
+        var y = document.getElementById("attendance");
+        if (x.style.display === "none") {
+           x.style.display = "block";
+           y.style.display="none";
+          }
+       else {
+            x.style.display = "none";
+            y.style.display = "block";
+          }
+      }
+    </script>
+    <button type="button"  onclick="monthattendance()">Month Attendance</button>
+    <script>
+      function monthattendance() {
+        var x = document.getElementById("monthattendance");
+        var y = document.getElementById("attendance");
+        if (x.style.display === "none") {
+           x.style.display = "block";
+           y.style.display="none";
+          }
+       else {
+            x.style.display = "none";
+            y.style.display = "block";
+          }
+      }
+    </script>
+    <button type="button"  onclick="dayattendance()">Day Attendance</button>
+    <script>
+      function dayattendance() {
+        var x = document.getElementById("dayattendance");
+        var y = document.getElementById("attendance");
+        if (x.style.display === "none") {
+           x.style.display = "block";
+           y.style.display="none";
+          }
+       else {
+            x.style.display = "none";
+            y.style.display = "block";
+          }
+      }
+    </script>
+    <button type="button"  onclick="hostelreport()">Hostel Report</button>
+    <script>
+      function hostelreport() {
+        var x = document.getElementById("hostelreport");
+        var y = document.getElementById("attendance");
+        if (x.style.display === "none") {
+           x.style.display = "block";
+           y.style.display="none";
+          }
+       else {
+            x.style.display = "none";
+            y.style.display = "block";
+          }
+      }
+    </script>
+  </div>
+  </div>
+  <div id="hostelreport" style="display: none;" class="form">
+    <form method='get' action="/month_attendance/hostelreport">
+      <div class="wrapper">
+        <header>
+          <h1>Hostel Report</h1>
+        </header>
+      <p>Enter date :</p><input type="date" name="date" Required>
+      <span> &nbsp; Options:    </span>
+          <select name="option" id="option" required>
+            <option value="">None</option>
+            <option value="view">view</option>
+            <option value="download">Download</option>
+          </select>
+      <a href="{% url 'hostelreport'  %}"><button type="submit" class="btn btn-outline-primary">Hostel Report</button></a>
+      </div>
+    </form>
+  </div>
+  <div id="dayattendance" style="display: none;" >
+    <form method="" action="/month_attendance/dayattendance/">
+      <div class="wrapper">
+        <header>
+          <h1>Download Attendance </h1>
+          <p>Enter date and hostel name</p>
+        </header>
+        <div class="form">
+          <p>Enter date :</p><input type="date" name="date" Required><br><br>
+          <span> &nbsp; Status :    </span>
+          <select name="present" id="present" required>
+            <option value="">None</option>
+            <option value="Absent">Absent</option>
+            <option value="Present">Present</option>
+            <option value="Both">Both</option>
+          </select>
+          <span> &nbsp; Hostel :    </span>
+          <select name="hostel" id="hostel" required>
+            <option value="">None</option>
+            <option value="All">All</option>
+            <option value="cvr">cvr</option>
+            <option value="asr">asr</option>
+            <option value="vvk">vvk</option>
+          </select>
+          <span> &nbsp; NonAC/AC :    </span>
+          <select name="hosteltype" id="hosteltype" required>
+            <option value="">None</option>
+            <option value="All">All</option>
+            <option value="Non AC">Non AC</option>
+            <option value="AC">AC</option>
+          </select>
+          <span> &nbsp; Options:    </span>
+          <select name="option" id="option" required>
+            <option value="">None</option>
+            <option value="view">view</option>
+            <option value="download">Download</option>
+          </select>
+          <a href="{% url 'download'  %}"><button type="submit" >Download</button></a><br>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div id="studentreport" style="display: none;" class="form">
+        <form method='get' action="/month_attendance/studentreport/">
+          <div class="wrapper">
+          <header>
+            <h1>Student Attendance </h1>
+            <p>Enter number</p>
+          </header>
+        
+          <p>From :</p><input type="date" name="date1" Required><br>
+          <p>To :</p><input type="date" name="date2" Required><br>
+        <p>Enter phone :</p><input type="text" name="phone"><br><br>
+        <span> &nbsp; Options:    </span>
+        <select name="option" id="option" required>
+          <option value="">None</option>
+          <option value="view">view</option>
+          <option value="download">Download</option>
+        </select>
+        <a href="{% url 'studentreport'  %}"><button type="submit">Student Report</button></a>
+        </form>
+      </div>
+      </div>
+    <div id="monthattendance" style="display: none;">
     <form method="" action="attendanceview/">
     <div class="wrapper">
       <header>
@@ -31,8 +176,9 @@
         <p>Enter date and hostel name</p>
       </header>
       <div class="form">
-        <p>From :</p><input type="date" name="date1" Required><br><br>
-        <p>To :</p><input type="date" name="date2" Required><br><br>
+    <div>
+        <p>From :</p><input type="date" name="date1" Required><br>
+        <p>To :</p><input type="date" name="date2" Required><br>
         <span> &nbsp; Hostel :    </span>
         <select name="hostel" id="hostel" required>
           <option value="">None</option>
@@ -55,9 +201,10 @@
           <option value="download">Download</option>
         </select>
         <a href="{% url 'attendanceview'  %}"><button type="submit" >Submit</button></a><br>
-      </div>
+     </div>
     </div>
   </form>
+</div>
   </body>
 </html>
 {%else%}

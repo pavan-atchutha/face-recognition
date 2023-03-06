@@ -872,3 +872,100 @@ def attendanceview(request):
         print(e)
         messages.error(request,'Something Wrong!!')
         return redirect('index')
+    
+@login_required
+def hostelreport(request):
+    day=request.GET['date']
+    option=request.GET['option']
+    if os.path.getsize("media/picklefiles/attendance.pickle") > 0:
+        attendance=pickle.loads(open('media/picklefiles/attendance.pickle',"rb").read())
+    else:
+        attendance={}
+    att=attendance[str(day)]
+    absent=att[0]
+    present=att[1]
+    att_db=att[2][0]
+    hostellist_absent={'cvr':0,'vvk':0,'asr':0,'vsr':0,'dnr':0,'sac':0}
+    hostellist_present={'cvr':0,'vvk':0,'asr':0,'vsr':0,'dnr':0,'sac':0}
+    for i in absent:
+        att_user=att_db[i]
+        if att_user['hostelname'] in hostellist_absent.keys():
+            hostellist_absent[att_user['hostelname']]+=1
+    for j in present:
+        att_user=att_db[j]
+        if att_user['hostelname'] in hostellist_present.keys():
+            hostellist_present[att_user['hostelname']]+=1
+    df={
+        'total_hotel':{'Absent':len(att[0]),'Present':len(att[1])}
+    }
+    for h in hostellist_absent.keys():
+        d={'Absent':hostellist_absent[h],'Present':hostellist_present[h]}
+        df[h]=d
+    dt = pd.DataFrame(df)
+    dt=dt.T
+    print(df)
+    if option=='download':
+        response = FileResponse(dt.to_csv(), content_type='application/force-download')
+        response['Content-Disposition'] = 'inline; filename='+day+'_hostel report.csv'
+        return response
+    return HttpResponse(dt.to_html())
+
+
+def studentreport(request):
+    print(123)
+    date1=datetime.strptime(request.GET.get("date1", ""), "%Y-%m-%d").date()
+    date2=datetime.strptime(request.GET.get("date2", ""), "%Y-%m-%d").date()
+    phone=request.GET.get("phone","")
+    option=request.GET["option"]
+    if len(phone)<10 or len(phone)>10:
+        messages.error(request,"Check phone Number!")
+        return redirect('index')
+    try:
+        phone=int(phone)
+        phone=str(phone)
+    except:
+        messages.error(request,"Check phone number!!")
+        return redirect('index')
+    if phone==None:
+        return redirect('index')#####
+    #pickle_attenance
+    if os.path.getsize("media/picklefiles/attendance.pickle") > 0:
+        attendance=pickle.loads(open('media/picklefiles/attendance.pickle',"rb").read())
+    else:
+        attendance={}
+    
+    delta = dta.timedelta(days=1)
+    datelist=[]
+    a={}
+    A=0
+    P=0
+    H=0
+    print(attendance)
+    while (date1 <= date2):
+        f=date1
+        f=f.strftime("%Y-%m-%d")
+        print( f in attendance.keys(),f)
+        if f in attendance.keys():
+            att=attendance[f]
+            if int(phone) in att[0]:
+                a[f]='Absent'
+                A+=1
+            elif int(phone) in att[1]:
+                a[f]='Present'
+                P+=1
+        else:
+            a[f]='holiday'
+            H+=1
+        date1 += delta
+    a['total present days']=P
+    a['total absent days']=A
+    a["total holidays"]=H
+    dt=pd.Series(a)
+    df=dt.to_frame(name=str(phone)+"_report")
+    print(df)
+    if option=='download':
+        response = FileResponse(df.to_csv(), content_type='application/force-download')
+        response['Content-Disposition'] = 'inline; filename='+str(phone)+'_hostel report.csv'
+        return response
+    return HttpResponse(df.to_html())
+    

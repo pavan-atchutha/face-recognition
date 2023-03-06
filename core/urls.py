@@ -27,8 +27,10 @@ urlpatterns = [
 
     path('attendance/',day_attendance,name='day_attendance'),
     path('month_attendance/',month_attendance,name='month_attendance'),
-    path('attendance/download/',download,name='download'),
+    path('month_attendance/dayattendance/',download,name='download'),
     path('month_attendance/attendanceview/',attendanceview,name='attendanceview'),
+    path('month_attendance/hostelreport',hostelreport,name='hostelreport'),
+    path('month_attendance/studentreport/',studentreport,name='studentreport'),
 
     path('index/manual_checking',manual_checking,name='manual_checking'),
     path('index/manual_attendance',manual_attendance,name='manual_attendance')

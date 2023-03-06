@@ -32,7 +32,7 @@
             <a   href="{% url 'profiles' %}"><input type="submit" class="profile-edit-btn m-2 "
                         name="btnAddMore" value="Create & Edit Profiles" /></a>
                         {% endif%}
-                        <button type="submit" class="profile-edit-btn m-2 " onclick="manualchecking()">Manual Attendance</button>
+             <button type="submit" class="profile-edit-btn m-2 " onclick="manualchecking()">Manual Attendance</button>
             <a   href="{% url 'signout' %}"><input type="submit" class="profile-edit-btn m-2 "
                             name="btnAddMore" value="SignOut" /></a>
             
@@ -103,8 +103,7 @@
             </table>
             <a href="{% url 'reset' %}"><button type="button" class="btn btn-outline-secondary">Reset</button></a>
             <a href="{% url 'index' %}"><button type="button" class="btn btn-outline-primary">Refresh</button></a>
-            <a href="{% url 'month_attendance'  %}"><button type="button" class="btn btn-outline-primary">Month Attendance</button></a>
-            <a href="{% url 'day_attendance'  %}"><button type="button" class="btn btn-outline-primary">Day Attendance</button></a>
+            <a href="{% url 'month_attendance'  %}"><button type="button" class="btn btn-outline-primary">Attendance</button></a>
             {% if request.user.is_superuser %}
             <a href="/signup"><button type="button" class="btn btn-outline-primary">Add Warden</button></a>
             {% endif%}
