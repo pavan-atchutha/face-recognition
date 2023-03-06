@@ -528,7 +528,7 @@ def download(request):
             attendance_list=att[1]
         file="media/attendance_documents/" +date+"_"+present+"_"+hostel+"_"+"file.csv"
         with open(file, 'w') as f:
-            f.writelines(f'first_name,last_name,date,hostelname,roomno,phone_number')
+            f.writelines(f'first_name,last_name,phone_number,hostelname,hosteltype,roomno')
             f.close()
         for i in attendance_list:
             att_user=att_db[i]
@@ -778,21 +778,19 @@ def attendanceview(request):
             for student in r:
                 s=[]
                 u=[]
-                print(l)
                 for date in l:
-                    print(attendance[date])
                     print(date not in attendance.keys())
                     if date not in attendance.keys():
                         print(123456)
                         s.append('No attendance')
                     else:
                         att=attendance[str(date)]
-                        print(1)
                         att_db=att[2][0]
-                        print(att_db)
                         if student not in att_db:
                             s.append('No data')
+                            continue
                         att_user=att_db[student]
+                        print(att_user)
                         if hostel=='All' and hosteltype=='All':
                             # 'first_name':profile.first_name,'last_name':profile.last_name,'date':profile.date,'hostelname':profile.hostelname,'hosteltype':profile.hosteltype,'roomno':profile.roomno,'phone':profile.phone
                             if len(u)==0:
@@ -802,9 +800,6 @@ def attendanceview(request):
                                 u.append(str(att_user['hostelname']))
                                 u.append(str(att_user['hosteltype']))
                                 u.append(str(att_user['roomno']))
-                            print(34)
-                            print((att_user['phone']))
-                            print(att)
                             print((att_user['phone']) in att[1])
                             if (att_user['phone']) in att[1]:
                                 s.append("Present")
@@ -826,6 +821,7 @@ def attendanceview(request):
                             else:
                                 s.append('Shifted')
                         elif hostel=='All':
+                            print(2)
                             if att_user['hosteltype']==hosteltype:
                                 if len(u)==0:
                                     u.append(str(att_user['first_name']))
@@ -859,16 +855,27 @@ def attendanceview(request):
                 s.append(str(s.count("Absent")))
                 u.extend(s)
                 s=u
-                if ("Present" in s) or ("Absent" in s):
+                fl=0
+                if ("Present" in s):
+                    fl=1
+                if ("Absent" in s):
+                    fl=1
+                print(fl)
+                if fl==1:
                     with open(file, 'a') as f:
-                        print(s)
                         f.writelines("\n"+",".join(s))
                         f.close()
                 else:
-                    messages.error(request,"Enter valid dates !")
-                    return redirect('index')
+                    print(s)
+                    continue
+                    # messages.error(request,"Enter valid dates !")
+                    # return redirect('index')
 
             dt=pd.read_csv(file)
+            dt_list=list(dt.shape)
+            if dt_list[0]<1:
+                messages.error(request,"No one in hostel in those dates !")
+                return redirect('index')
             dt=dt.sort_values('roomno')
             dt=dt.sort_values('hostelname')
             print(dt)
@@ -894,6 +901,9 @@ def hostelreport(request):
         attendance=pickle.loads(open('media/picklefiles/attendance.pickle',"rb").read())
     else:
         attendance={}
+    if day not in attendance:
+        messages.error(request,"No hostel_report on that date!!")
+        return redirect('index')
     att=attendance[str(day)]
     absent=att[0]
     present=att[1]
