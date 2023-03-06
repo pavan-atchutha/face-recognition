@@ -5,7 +5,7 @@
 body {
     
     font-family: "Muli",sans-serif;
-    background-color: #BAD7E9;
+    background-color: #95bdff;;
     color: #fff;
     display: flex;
     flex-direction: column;
@@ -39,7 +39,7 @@ body {
     cursor: pointer;
     display: inline-block;
     width: 100px;
-    background: rgb(65 187 198 / 97%);
+    background: #73e26bdc;
     padding: 15px;
     font-family: inherit;
     font-size: 16px;

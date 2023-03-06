@@ -10,17 +10,57 @@ body{
   padding: 0 10px;
   min-height: 100vh;
   align-items: center;
-  background: skyblue;
+  background: #95bdff;
   justify-content: center;
 }
+
 .wrapper{
   height: 500px;
   max-width: 410px;
-  background:#edbfba;
+  color : white;
+  background:#393e467d;
   border-radius: 10px;
   padding: 20px 25px 0;
   transition: height 0.2s ease;
   
+}
+.wrapperdayattendance{
+  height: 450px;
+  width: 350px;
+  max-width: 410px;
+  color : white;
+  background:#393e467d;
+  border-radius: 10px;
+  padding: 20px 25px 0;
+  transition: height 0.2s ease;
+  
+}
+.wrapperhostelreport{
+  height: 300px;
+  width: 350px;
+  max-width: 410px;
+  color : white;
+  background:#393e467d;
+  border-radius: 10px;
+  padding: 20px 25px 0;
+  transition: height 0.2s ease;
+  
+}
+#attendance{
+  
+  max-width: 410px;
+  color : white;
+  background:#393e467d;
+  border-radius: 10px;
+  padding: 20px 25px 25px;
+  transition: height 0.2s ease;
+  
+}
+
+header p {
+  color : white;
+  margin-top: 5px;
+  font-size: 16px;
 }
 header h1{
   font-size: 21px;
@@ -48,7 +88,15 @@ header p{
   border: 1px solid #999;
   background: #FFFAE7;
 }
+.watermark{
+    margin-left : 100px;
+    width: 140px;
+    height: 100px;
+    
+    position: inherit;
+    
 
+}
 .form input::placeholder{
   color: #999;
 }
@@ -60,11 +108,12 @@ header p{
   cursor: pointer;
   margin-top: 20px;
   font-size: 20px;
+  color : white;
   font-family: sans-serif;
-  background: rgb(152, 238, 152);
+  background: #1ee366de;
 }
 .button:active {
-  background-color: #3e8e41;
+  background-color: #2ffa46;
   box-shadow: 0 5px #666;
   transform: translateY(4px);
 }

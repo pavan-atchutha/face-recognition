@@ -728,6 +728,9 @@ def pickel_attendance(dte):
 
 # def index_call(request):
 #     return render(request,'core/index.html')
+
+
+
 @login_required
 def attendanceview(request):
     try:
@@ -777,13 +780,18 @@ def attendanceview(request):
                 u=[]
                 print(l)
                 for date in l:
+                    print(attendance[date])
                     print(date not in attendance.keys())
                     if date not in attendance.keys():
                         print(123456)
                         s.append('No attendance')
                     else:
                         att=attendance[str(date)]
+                        print(1)
                         att_db=att[2][0]
+                        print(att_db)
+                        if student not in att_db:
+                            s.append('No data')
                         att_user=att_db[student]
                         if hostel=='All' and hosteltype=='All':
                             # 'first_name':profile.first_name,'last_name':profile.last_name,'date':profile.date,'hostelname':profile.hostelname,'hosteltype':profile.hosteltype,'roomno':profile.roomno,'phone':profile.phone
@@ -856,6 +864,10 @@ def attendanceview(request):
                         print(s)
                         f.writelines("\n"+",".join(s))
                         f.close()
+                else:
+                    messages.error(request,"Enter valid dates !")
+                    return redirect('index')
+
             dt=pd.read_csv(file)
             dt=dt.sort_values('roomno')
             dt=dt.sort_values('hostelname')
@@ -868,6 +880,7 @@ def attendanceview(request):
                 response['Content-Disposition'] = 'inline; filename='+file
                 return response
             return HttpResponse(dt.to_html())
+        return redirect('index')
     except Exception as e:
         print(e)
         messages.error(request,'Something Wrong!!')
