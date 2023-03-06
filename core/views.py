@@ -621,7 +621,9 @@ def download(request):
                 #print(123)
                 return response
             if option=='view':
-                return HttpResponse(dt.to_html())
+                table_content = dt.to_html()
+                context = {'table_content': table_content}
+                return  render(request, 'core/table.html', context)
     return redirect('index')
 @login_required
 def month_attendance(request):
@@ -880,13 +882,17 @@ def attendanceview(request):
             dt=dt.sort_values('hostelname')
             print(dt)
             if option=='view':
-                return HttpResponse(dt.to_html())
+                table_content = dt.to_html()
+                context = {'table_content': table_content}
+                return  render(request, 'core/table.html', context)
             if option=='download':
                 file_to_download = open(str(file), 'rb')
                 response = FileResponse(file_to_download, content_type='application/force-download')
                 response['Content-Disposition'] = 'inline; filename='+file
                 return response
-            return HttpResponse(dt.to_html())
+            table_content = dt.to_html()
+            context = {'table_content': table_content}
+            return  render(request, 'core/table.html', context)
         return redirect('index')
     except Exception as e:
         print(e)
@@ -919,7 +925,7 @@ def hostelreport(request):
         if att_user['hostelname'] in hostellist_present.keys():
             hostellist_present[att_user['hostelname']]+=1
     df={
-        'total_hotel':{'Absent':len(att[0]),'Present':len(att[1])}
+        'total_hostel':{'Absent':len(att[0]),'Present':len(att[1])}
     }
     for h in hostellist_absent.keys():
         d={'Absent':hostellist_absent[h],'Present':hostellist_present[h]}
@@ -931,7 +937,9 @@ def hostelreport(request):
         response = FileResponse(dt.to_csv(), content_type='application/force-download')
         response['Content-Disposition'] = 'inline; filename='+day+'_hostel report.csv'
         return response
-    return HttpResponse(dt.to_html())
+    table_content = dt.to_html()
+    context = {'table_content': table_content}
+    return  render(request, 'core/table.html', context)
 
 
 def studentreport(request):
@@ -990,5 +998,7 @@ def studentreport(request):
         response = FileResponse(df.to_csv(), content_type='application/force-download')
         response['Content-Disposition'] = 'inline; filename='+str(phone)+'_hostel report.csv'
         return response
-    return HttpResponse(df.to_html())
+    table_content = df.to_html()
+    context = {'table_content': table_content}
+    return  render(request, 'core/table.html', context)
     

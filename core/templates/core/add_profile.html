@@ -4,6 +4,94 @@
 {% if request.user.is_superuser %}
 <head>
     <link rel="icon" type="image/x-icon" href="static/img/logo.png">
+    <style>
+        /* body,
+        html {
+          background: #002F74;
+        } */
+        .spin-container {
+          text-align: center;
+          margin-top: 100px;
+        }
+        .spin {
+          border: 3px solid #0D4B9F;
+          width: 200px;
+          height: 200px;
+          margin: 0 auto;
+          border-radius: 50%;
+          border-left-color: transparent;
+          border-right-color: transparent;
+          animation: rotate 2s cubic-bezier(0.26, 1.36, 0.74, -0.29) infinite;
+        }
+        #loader2 {
+          border: 3px solid #E0EDFF;
+          width: 220px;
+          height: 220px;
+          position: relative;
+          top: -216px;
+          border-left-color: transparent;
+          border-right-color: transparent;
+          animation: rotate2 2s cubic-bezier(0.26, 1.36, 0.74, -0.29) infinite;
+        }
+        #loader3 {
+          border: 3px solid #005CDC;
+          width: 240px;
+          height: 240px;
+          position: relative;
+          top: -452px;
+          border-left-color: transparent;
+          border-right-color: transparent;
+          animation: rotate 2s cubic-bezier(0.26, 1.36, 0.74, -0.29) infinite;
+        }
+        #loader4 {
+          border: 3px solid #94B6E5;
+          width: 260px;
+          height: 260px;
+          position: relative;
+          top: -708px;
+          border-left-color: transparent;
+          border-right-color: transparent;
+          animation: rotate2 2s cubic-bezier(0.26, 1.36, 0.74, -0.29) infinite;
+        }
+        @keyframes rotate {
+          0% {
+            transform: rotateZ(-360deg)
+          }
+          100% {
+            transform: rotateZ(0deg)
+          }
+        }
+        @keyframes rotate2 {
+          0% {
+            transform: rotateZ(360deg)
+          }
+          100% {
+            transform: rotateZ(0deg)
+          }
+        }
+        #text {
+          color: #e4140d;
+          font-family: Arial;
+          font-size: 15px;
+          position: relative;
+          top: -857px;
+        }
+        .watermark{
+            width: 140px;
+            height: 100px;
+            position: inherit;
+            margin-left: 10px;
+            margin-top: -20px;
+        }
+      </style>
+        <script>
+            function loading() {
+              var x = document.getElementById("loading");
+              if (x.style.display === "none") {
+                 x.style.display = "block";
+                }
+            }
+          </script>
 </head>
 
 {% for message in messages %}
@@ -58,7 +146,6 @@
                 </div>
             </div>
 
-
             <div class="col-md-4">
                 <h5 class="text-muted">College Informations:</h5><br>
                 <div class="m-1">
@@ -106,10 +193,22 @@
                     {{ form.image }}
                 </div>
             </div>
-
+            <div class="spin-container" id="loading" style="display: none">
+                <center>
+                <div style="position: absolute; top: 40%; left: 40%;">
+                <div class="spin" id="loader"></div>
+                <div class="spin" id="loader2"></div>
+                <div class="spin" id="loader3"></div>
+                <div class="spin" id="loader4"></div>
+                <span id="text">
+                    <img class="watermark" src="{% static 'img/logo.png'%}" alt=""><br>
+                    LOADING...
+                </span></div>
+            </center>
+              </div>
         </div>
         <div class="mt-3">
-            <button type="submit" class="btn btn-outline-success m-1">Save</button>
+            <button type="submit" class="btn btn-outline-success m-1" onclick="loading()">Save</button>
             <a href="{% url 'profiles'%}"><button type="button" class="btn btn-outline-danger m-1">Cancel</button></a>
             <p>*After Submit ,Please wait 1min for image encoding and reload page!!</p>
         </div>
