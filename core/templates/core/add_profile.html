@@ -83,6 +83,7 @@
             margin-left: 10px;
             margin-top: -20px;
         }
+        
       </style>
         <script>
             function loading() {
@@ -90,6 +91,7 @@
               if (x.style.display === "none") {
                  x.style.display = "block";
                 }
+                
             }
           </script>
 </head>
@@ -104,7 +106,7 @@
     {% endfor %}
 
 
-
+<div class = "bckgrnd" >
 <div class="container emp-profile pb-3">
     <form method="POST" action="." class="needs-validation" enctype='multipart/form-data'>
         {% csrf_token %}
@@ -195,14 +197,14 @@
             </div>
             <div class="spin-container" id="loading" style="display: none">
                 <center>
-                <div style="position: absolute; top: 40%; left: 40%;">
+                <div style="position: absolute; top: 40%; left: 40%; ">
                 <div class="spin" id="loader"></div>
                 <div class="spin" id="loader2"></div>
                 <div class="spin" id="loader3"></div>
                 <div class="spin" id="loader4"></div>
                 <span id="text">
                     <img class="watermark" src="{% static 'img/logo.png'%}" alt=""><br>
-                    LOADING...
+                    Uploading...
                 </span></div>
             </center>
               </div>
@@ -214,7 +216,7 @@
         </div>
     </form>
 </div>
-
+</div>
 {%else%}
 
 

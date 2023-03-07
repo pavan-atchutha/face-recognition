@@ -607,7 +607,7 @@ def download(request):
             dt=dt.sort_values('roomno')
             dt=dt[dt['hostelname']==hostel]
         #print(dt)
-        dt.to_csv("media/attendance_documents/"+date+"_"+present+"_"+hostel+"_"+'file.csv')
+        dt.to_csv("media/attendance_documents/"+date+"_"+present+"_"+hostel+"_"+'file.csv',index=False)
         # return HttpResponse(dt.to_html())
 
         file_server = pathlib.Path("media/attendance_documents/"+date+"_"+present+"_"+hostel+"_"+'file.csv')
@@ -621,7 +621,10 @@ def download(request):
                 #print(123)
                 return response
             if option=='view':
-                table_content = dt.to_html()
+                dt["index"] = [int(i) for i in range(1,len(dt)+1)]
+                dt.set_index("index",inplace=True)
+                table_content = dt.to_html(index=False)
+                
                 context = {'table_content': table_content}
                 return  render(request, 'core/table.html', context)
     return redirect('index')
@@ -881,8 +884,11 @@ def attendanceview(request):
             dt=dt.sort_values('roomno')
             dt=dt.sort_values('hostelname')
             print(dt)
+            # dt["index"] = 
+            
+            dt.insert(0,"index",[int(i) for i in range(1,len(dt)+1)])
             if option=='view':
-                table_content = dt.to_html()
+                table_content = dt.to_html(index=False)
                 context = {'table_content': table_content}
                 return  render(request, 'core/table.html', context)
             if option=='download':
