@@ -520,6 +520,7 @@ def download(request):
             messages.success(request,"attendance not found!!")
             return redirect('index')
         att=attendance[str(date)]
+        print(attendance)
         att_db=att[2][0]
         #print(att)
         if present=="Absent":
@@ -528,7 +529,7 @@ def download(request):
             attendance_list=att[1]
         file="media/attendance_documents/" +date+"_"+present+"_"+hostel+"_"+"file.csv"
         with open(file, 'w') as f:
-            f.writelines(f'first_name,last_name,phone_number,hostelname,hosteltype,roomno')
+            f.writelines(f'first_name,last_name,phone_number,parent_phone,hostelname,hosteltype,roomno')
             f.close()
         for i in attendance_list:
             att_user=att_db[i]
@@ -538,6 +539,7 @@ def download(request):
                     u.append(str(att_user['first_name']))
                     u.append(str(att_user['last_name']))
                     u.append(str(att_user['phone']))
+                    u.append(str(att_user['parentphone']))
                     u.append(str(att_user['hostelname']))
                     u.append(str(att_user['hosteltype']))
                     u.append(str(att_user['roomno']))
@@ -569,47 +571,20 @@ def download(request):
             except Exception as e:
                 print(e)
                 pass
-        # else:
-        #     for i in attendance_list:
-        #         try:
-        #             profile = Profile.objects.get(pk=i)
-        #             with open(file, 'a') as f:
-        #                 #print(profile.first_name)
-        #                 f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
-        #                 f.close()
-        #         except:
-        #             with open(file, 'a') as f:
-        #                     #print(profile.first_name)
-        #                     f.writelines(del_list[i])
-        #                     f.close()
-        #             pass
         dt =pd.read_csv(file)
-        # #file based attendance
-        # if present=="Absent":
-        #     try:
-        #         file_path="absentees_documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
-        #         dt =pd.read_csv(file_path)
-        #     except:
-        #         messages.error(request, 'file not found.')
-        #         return redirect('index')
-
-        # else:
-        #     try:
-        #         file_path="media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
-        #         dt =pd.read_csv(file_path)
-        #     except:
-        #         messages.error(request, 'file not found.')
-        #         return redirect('index')
         if hostel=="All":
             dt=dt.sort_values('roomno')
             dt=dt.sort_values('hostelname')
         else:
             dt=dt.sort_values('roomno')
             dt=dt[dt['hostelname']==hostel]
+
+        
         #print(dt)
         dt.to_csv("media/attendance_documents/"+date+"_"+present+"_"+hostel+"_"+'file.csv',index=False)
         # return HttpResponse(dt.to_html())
-
+        
+        print(dt)
         file_server = pathlib.Path("media/attendance_documents/"+date+"_"+present+"_"+hostel+"_"+'file.csv')
         if not file_server.exists():
             messages.error(request, 'file not found.')
@@ -620,13 +595,13 @@ def download(request):
                 response['Content-Disposition'] = 'inline; filename='+date+'"_"'+present+'"_"'+hostel+"_"+hosteltype+'file.csv'
                 #print(123)
                 return response
-            if option=='view':
-                dt["index"] = [int(i) for i in range(1,len(dt)+1)]
-                dt.set_index("index",inplace=True)
-                table_content = dt.to_html(index=False)
-                
-                context = {'table_content': table_content}
-                return  render(request, 'core/table.html', context)
+            dt.insert(0,"index",[int(i) for i in range(1,len(dt)+1)])
+            table_content = dt.to_html(index=False)
+            context = {
+                    'table_content': table_content,
+                    'string':date+' || present/absent : '+present+' ||  hostel : '+hostel+' ||  hosteltype : '+hosteltype
+                    }
+            return  render(request, 'core/table.html', context)
     return redirect('index')
 @login_required
 def month_attendance(request):
@@ -717,7 +692,7 @@ def pickel_attendance(dte):
         d={}
         for profile in profiles:
             attendance_list[0].append(profile.pk)
-            d[profile.pk]={'first_name':profile.first_name,'last_name':profile.last_name,'date':profile.date,'hostelname':profile.hostelname,'hosteltype':profile.hosteltype,'roomno':profile.roomno,'phone':profile.phone}
+            d[profile.pk]={'first_name':profile.first_name,'last_name':profile.last_name,'date':profile.date,'hostelname':profile.hostelname,'hosteltype':profile.hosteltype,'roomno':profile.roomno,'phone':profile.phone,'parentphone':profile.parentphone}
             attendance_list[2].append(d)
         pickled_object[dte]=attendance_list
         pickle_file=open('media/picklefiles/attendance.pickle', 'wb')
@@ -740,6 +715,8 @@ def pickel_attendance(dte):
 def attendanceview(request):
     try:
         if request.method=='GET':
+            fdate=request.GET.get("date1", "")
+            tdate=request.GET.get("date2", "")
             date1=datetime.strptime(request.GET.get("date1", ""), "%Y-%m-%d").date()
             date2=datetime.strptime(request.GET.get("date2", ""), "%Y-%m-%d").date()
             present=request.GET.get("present","")
@@ -778,7 +755,7 @@ def attendanceview(request):
             print(r)
             file="media/attendance_documents/" +date1.strftime("%Y-%m-%d")+"to"+date2.strftime("%Y-%m-%d")+"_"+present+"_"+hostel+"_"+hosteltype+"file.csv"
             with open(file, 'w') as f:
-                f.writelines('first_name,last_name,phone,hostelname,hosteltype,roomno,'+",".join(l)+',total_present_days,total_absent_days')
+                f.writelines('first_name,last_name,phone,parent_phone,hostelname,hosteltype,roomno,'+",".join(l)+',total_present_days,total_absent_days')
                 f.close()
             for student in r:
                 s=[]
@@ -802,6 +779,7 @@ def attendanceview(request):
                                 u.append(str(att_user['first_name']))
                                 u.append(str(att_user['last_name']))
                                 u.append(str(att_user['phone']))
+                                u.append(str(att_user['parentphone']))
                                 u.append(str(att_user['hostelname']))
                                 u.append(str(att_user['hosteltype']))
                                 u.append(str(att_user['roomno']))
@@ -816,6 +794,7 @@ def attendanceview(request):
                                     u.append(str(att_user['first_name']))
                                     u.append(str(att_user['last_name']))
                                     u.append(str(att_user['phone']))
+                                    u.append(str(att_user['parentphone']))
                                     u.append(str(att_user['hostelname']))
                                     u.append(str(att_user['hosteltype']))
                                     u.append(str(att_user['roomno']))
@@ -832,6 +811,7 @@ def attendanceview(request):
                                     u.append(str(att_user['first_name']))
                                     u.append(str(att_user['last_name']))
                                     u.append(str(att_user['phone']))
+                                    u.append(str(att_user['parentphone']))
                                     u.append(str(att_user['hostelname']))
                                     u.append(str(att_user['hosteltype']))
                                     u.append(str(att_user['roomno']))
@@ -847,6 +827,7 @@ def attendanceview(request):
                                     u.append(str(att_user['first_name']))
                                     u.append(str(att_user['last_name']))
                                     u.append(str(att_user['phone']))
+                                    u.append(str(att_user['parentphone']))
                                     u.append(str(att_user['hostelname']))
                                     u.append(str(att_user['hosteltype']))
                                     u.append(str(att_user['roomno']))
@@ -887,17 +868,19 @@ def attendanceview(request):
             # dt["index"] = 
             
             dt.insert(0,"index",[int(i) for i in range(1,len(dt)+1)])
-            if option=='view':
-                table_content = dt.to_html(index=False)
-                context = {'table_content': table_content}
-                return  render(request, 'core/table.html', context)
+            # if option=='view':
+            #     table_content = dt.to_html(index=False)
+            #     context = {'table_content': table_content}
+            #     return  render(request, 'core/table.html', context)
             if option=='download':
                 file_to_download = open(str(file), 'rb')
                 response = FileResponse(file_to_download, content_type='application/force-download')
                 response['Content-Disposition'] = 'inline; filename='+file
                 return response
-            table_content = dt.to_html()
-            context = {'table_content': table_content}
+            table_content = dt.to_html(index=False)
+            context = {'table_content': table_content,
+                       'string':'FROM :' +fdate+'  || TO : '+tdate+' || hostel : '+hostel+' || hosteltype : '+hosteltype
+                       }
             return  render(request, 'core/table.html', context)
         return redirect('index')
     except Exception as e:
@@ -944,12 +927,16 @@ def hostelreport(request):
         response['Content-Disposition'] = 'inline; filename='+day+'_hostel report.csv'
         return response
     table_content = dt.to_html()
-    context = {'table_content': table_content}
+    context = {'table_content': table_content,
+               'string':day
+               }
     return  render(request, 'core/table.html', context)
 
 
 def studentreport(request):
     print(123)
+    fdate=request.GET.get("date1", "")
+    tdate=request.GET.get("date2", "")
     date1=datetime.strptime(request.GET.get("date1", ""), "%Y-%m-%d").date()
     date2=datetime.strptime(request.GET.get("date2", ""), "%Y-%m-%d").date()
     phone=request.GET.get("phone","")
@@ -1005,6 +992,8 @@ def studentreport(request):
         response['Content-Disposition'] = 'inline; filename='+str(phone)+'_hostel report.csv'
         return response
     table_content = df.to_html()
-    context = {'table_content': table_content}
+    context = {'table_content': table_content,
+               'string': 'FROM : '+fdate+' || TO : '+tdate+' || PHONE : '+str(phone)
+               }
     return  render(request, 'core/table.html', context)
     

@@ -30,7 +30,7 @@
                     name="btnAddMore" value="Run Scanner" /></a>
                     {% if request.user.is_superuser %}
             <a   href="{% url 'profiles' %}"><input type="submit" class="profile-edit-btn m-2 "
-                        name="btnAddMore" value="Create & Edit Profiles" /></a>
+                        name="btnAddMore" value="Create & Edit Profile" /></a>
                         {% endif%}
              <button type="submit" class="profile-edit-btn m-2 " onclick="manualchecking()">Manual Attendance</button>
             <a   href="{% url 'signout' %}"><input type="submit" class="profile-edit-btn m-2 "
@@ -42,7 +42,7 @@
         <form method='get' action="/index/manual_checking">
         <h4>Manual Attendance</h4>
         <p>Enter phone :</p><input type="text" name="phone"><br><br>
-        <a href="{% url 'manual_checking'  %}"><button type="submit" onclick="manualchecking()" >Present</button></a>
+        <a href="{% url 'manual_checking'  %}"><button type="submit" class="btn btn-outline-secondary" onclick="manualchecking()" >Present</button></a>
         </form>
     </div>
     <script>
@@ -117,6 +117,7 @@
                         <th scope="col">Name</th>
                         <th scope="col">Hostel Name</th>
                         <th scope="col">Room Number</th>
+                        <th scope="col">Course</th>
                         <th scope="col">Shift Time</th>
                     </tr>
                 </thead>
@@ -127,6 +128,7 @@
                         <td>{{profile.first_name}} {{profile.last_name}}</td>
                         <td>{{profile.hostelname}}</td>
                         <td>{{profile.roomno}}</td>
+                        <td>{{profile.course}}</td>
                         <td>{{profile.shift}}</td>
                     </tr>
                     {% endfor%}
