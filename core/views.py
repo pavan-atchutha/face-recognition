@@ -66,6 +66,8 @@ def scan(request):
     name1='Unknown!!'
     global last_face
     global flag
+    global dataflag
+    dataflag=0
     flag=0
     known_face_encodings = []
     known_face_names = []
