@@ -37,7 +37,7 @@ face_list_file = os.path.join(current_path, 'face_list.txt')
 sound = os.path.join(sound_folder, 'beep.wav')
 nameList=[]
 flag=0
-
+dataflag=0
 @ensure_csrf_cookie
 @csrf_protect
 @login_required
@@ -78,8 +78,13 @@ def scan(request):
     pickel_attendance(str(date))
     if os.path.getsize("media/picklefiles/attendance.pickle") > 0:
         attendance=pickle.loads(open('media/picklefiles/attendance.pickle',"rb").read())
-    #print(data)
-    #print(attendance)
+    ##print(data)
+    ##print(attendance)
+    if len(data)==0:
+        messages.error(request,"No Student DB!!")
+        global dataflag
+        dataflag=1
+        return HttpResponse('scaner closed', last_face)
     att=attendance[date]
     for profile in profiles:
         person = str(profile.phone)
@@ -123,7 +128,7 @@ def scan(request):
                 
                     name = 0
                 if matches[best_match_index] and mat:
-                    print(12345)
+                    ##print(12345)
                     name = known_face_names[best_match_index]
                     profile = Profile.objects.get(pk=name)
                     name1=profile.first_name
@@ -131,31 +136,31 @@ def scan(request):
                         # messages.error(request,'Already present!')
                         pass
                     else:
-                        #print(profile.shift)
+                        ##print(profile.shift)
                         profile.present = True
                         winsound.PlaySound(sound, winsound.SND_ASYNC)
                         if len(att[0])==0:
-                            #print('all attendance over!')
+                            ##print('all attendance over!')
                             messages.success(request, "All Attendance Over!!")
                             break
                         att[0].remove((profile.pk))
                         att[1].append(profile.pk)
-                        #print(attendance[date])
+                        ##print(attendance[date])
                         # markAttendance(profile)
                         profile.save()
                     
                     if last_face != name and name != 0:
-                        print(123)
+                        #print(123)
                         last_face = LastFace(last_face=name)
-                        print(last_face)
+                        #print(last_face)
                         last_face.save()
                         last_face = name
                         # winsound.PlaySound(sound, winsound.SND_ASYNC)
                     else:
                         pass
-                print(name)
-                print(last_face != name)
-                print(last_face)
+                #print(name)
+                #print(last_face != name)
+                #print(last_face)
                 face_names.append(name1)
         process_this_frame = not process_this_frame
         for (top, right, bottom, left), name in zip(face_locations, face_names):
@@ -171,7 +176,7 @@ def scan(request):
                         font, 0.5, (255, 255, 255), 1)
         cv2.imshow('Video', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
-            #print("db sucessfully update!")
+            ##print("db sucessfully update!")
             messages.success(request, "attendance db Successfully updated!!")
             break
     video_capture.release()
@@ -191,14 +196,17 @@ def profiles(request):
 
 @login_required
 def details(request):
+    global dataflag
+    if dataflag==1:
+        return render(request, 'core/index.html')
     try:
         last_face = LastFace.objects.last().last_face
         profile = Profile.objects.get(pk=last_face)
     except Exception as e:
-        print(e)
+        #print(e)
         last_face = None
         profile = None
-        print(404)
+        #print(404)
 
     context = {
         'profile': profile,
@@ -212,7 +220,7 @@ def add_profile(request):
     try:
         if request.method == 'POST':
             form = ProfileForm(request.POST,request.FILES)
-            print(form.is_valid())
+            #print(form.is_valid())
             if form.is_valid():
                 #encoding_image(name,image)
                 encoding_image(str(int(request.POST.get("phone"))),request.FILES["image"])
@@ -234,27 +242,27 @@ def edit_profile(request,id):
     try:
         if request.method == 'POST':
             form = ProfileForm(request.POST,request.FILES,instance=profile)
-            #print(request.POST.get("phone"),profile.pk)
+            ##print(request.POST.get("phone"),profile.pk)
             if int(request.POST.get("phone"))!=profile.pk:
                 messages.error(request,"Can't Change Your phone number!!")
                 return redirect('profiles')
-            #print(str(profile.image))
+            ##print(str(profile.image))
             image_path=str(profile.image)
-            #print(123)
+            ##print(123)
             # if str(profile.image)!=str(request.FILES["image"]):
-            #     #print(12345)
+            #     ##print(12345)
             #     os.remove("media/"+str(profile.image))
             #     profile.image=request.FILES["image"]
             #     os.remove("media/"+str(request.FILES["image"]))
             if form.is_valid():
-                #print(404)
+                ##print(404)
                 
                 #encoding_image(name,image)
                 form.save()
                 try:
                     encoding_image(str(int(request.POST.get("phone"))),request.FILES["image"])
                     if image_path!=str(request.FILES["image"]):
-                        #print(12345)
+                        ##print(12345)
                         os.remove("media/"+image_path)
                         #os.remove("media/"+str(request.FILES["image"]))
                     #encoding_image(request.POST.get("phone"),request.POST.get("image"))
@@ -266,8 +274,8 @@ def edit_profile(request,id):
                 messages.error(request,"Enter All the details !")
                 return redirect('index')
     except Exception as e:
-        #print(1)
-        #print(e)
+        ##print(1)
+        ##print(e)
         messages.error(request,"Try again! add photo and phoneno")
     context={'form':form}
     return render(request,'core/add_profile.html',context)
@@ -324,12 +332,12 @@ def reset(request):
 #     profiles = Profile.objects.all()
 #     today = now.strftime("%Y/%m/%d_%H:%M")
 #     filename = "media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
-#     #print(401)
+#     ##print(401)
 #     try:
-#         #print(402)
+#         ##print(402)
 #         with open(filename, 'a') as f:
-#             #print(403)
-#             #print(profile.first_name)
+#             ##print(403)
+#             ##print(profile.first_name)
 #             #for profile in nameList :
 #                 # now = datetime.now()
 #                 # dtString = now.strftime('%H:%M:%S')
@@ -337,7 +345,7 @@ def reset(request):
 #             f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
 #             f.close()
 #     except:
-#         # #print(404)
+#         # ##print(404)
 #         # for profile in profiles:
 #         #     if profile.present == True:
 #         #         profile.present = False
@@ -347,12 +355,12 @@ def reset(request):
 #         # history = LastFace.objects.all()
 #         # history.delete()
 #         with open(filename, 'w') as f:
-#             #print(profile.first_name)
+#             ##print(profile.first_name)
 #             #for profile in nameList :
 #                 # now = datetime.now()
 #                 # dtString = now.strftime('%H:%M:%S')
 #                 # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
-#             #print('write')
+#             ##print('write')
 #             f.writelines(f'first_name,last_name,date,hostelname,roomno,phone')
 #             # f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
 #             f.close()
@@ -360,13 +368,13 @@ def reset(request):
  
 def encoding_image(name,image):
     # Step 1: Open the pickle file in append mode
-    #print(404)
+    ##print(404)
     try:
-        #print(os.path.getsize("media/picklefiles/pickle_file.pickle"))
+        ##print(os.path.getsize("media/picklefiles/pickle_file.pickle"))
         if os.path.getsize("media/picklefiles/pickle_file.pickle") > 0:
-            #print(1)
+            ##print(1)
             pickle_file = open('media/picklefiles/pickle_file.pickle', 'rb')
-            #print(2)
+            ##print(2)
             pickled_object = pickle.load(pickle_file)
 
         else:
@@ -380,13 +388,13 @@ def encoding_image(name,image):
         pickle.dump(pickled_object, pickle_file )
         pickle_file.close()
     except EOFError:
-        # #print(pickled_object = pickle.load(pickle_file))
+        # ##print(pickled_object = pickle.load(pickle_file))
         pickled_object = {}
 
 def camoff(request):
     global flag
     flag=1
-    #print("db sucessfully update!")
+    ##print("db sucessfully update!")
     messages.success(request, "attendance db Successfully updated!!")
     return redirect('index')
 
@@ -409,17 +417,17 @@ def signin(request):
             # now = datetime.now()
             # filename = "media/documents/" + datetime.now().strftime("%Y-%m-%d") + ".csv"
             # try:
-            #     #print(402)
+            #     ##print(402)
             #     f=open(filename, 'r')
             # except:
-            #     #print(404)
+            #     ##print(404)
             #     profiles = Profile.objects.all()
             #     with open(filename, 'w') as f:
             #         #for profile in nameList :
             #             # now = datetime.now()
             #             # dtString = now.strftime('%H:%M:%S')
             #             # f.writelines(f'\n{name},{dtString},{sid_name[sid.index(name)]}')
-            #         #print('write')
+            #         ##print('write')
             #         f.writelines(f'first_name,last_name,date,hostelname,roomno,phone')
             #         # f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
             #         f.close()
@@ -493,23 +501,23 @@ def signup(request):
 #     for profile in profiles:
 #         if profile.present == False:
 #             with open(file, 'a') as f:
-#                 #print(profile.first_name)
+#                 ##print(profile.first_name)
 #                 f.writelines(f'\n{profile.first_name},{profile.last_name},{profile.date},{profile.hostelname},{profile.roomno},{profile.phone}')
 #                 f.close()
 
 
 @login_required
 def download(request):
-    #print(request.method)
+    ##print(request.method)
     if request.method=='GET':
         date=request.GET.get("date", "")
         present=request.GET.get("present","")
         hostel=request.GET["hostel"]
         hosteltype=request.GET["hosteltype"]
         option=request.GET["option"]
-        #print(date)
-        #print(present)
-        #print(hostel)
+        ##print(date)
+        ##print(present)
+        ##print(hostel)
         if present==None or hostel==None:
             return redirect('index')#####
         #pickle_attenance
@@ -521,15 +529,15 @@ def download(request):
             del_list=pickle.loads(open('media/picklefiles/delete_user.pickle',"rb").read())
         else:
             del_list={}
-        #print(date)
-        #print(attendance)
+        ##print(date)
+        ##print(attendance)
         if date not in attendance.keys():
             messages.success(request,"attendance not found!!")
             return redirect('index')
         att=attendance[str(date)]
-        print(attendance)
+        #print(attendance)
         att_db=att[2][0]
-        #print(att)
+        ##print(att)
         if present=="Absent":
             attendance_list=att[0]
         else:
@@ -576,7 +584,7 @@ def download(request):
                             f.writelines('\n'+",".join(u))
                             f.close()
             except Exception as e:
-                print(e)
+                #print(e)
                 pass
         dt =pd.read_csv(file)
         if hostel=="All":
@@ -587,11 +595,11 @@ def download(request):
             dt=dt[dt['hostelname']==hostel]
 
         
-        #print(dt)
+        ##print(dt)
         dt.to_csv("media/attendance_documents/"+date+"_"+present+"_"+hostel+"_"+'file.csv',index=False)
         # return HttpResponse(dt.to_html())
         
-        print(dt)
+        #print(dt)
         file_server = pathlib.Path("media/attendance_documents/"+date+"_"+present+"_"+hostel+"_"+'file.csv')
         if not file_server.exists():
             messages.error(request, 'file not found.')
@@ -600,7 +608,7 @@ def download(request):
                 file_to_download = open(str(file_server), 'rb')
                 response = FileResponse(file_to_download, content_type='application/force-download')
                 response['Content-Disposition'] = 'inline; filename='+date+'"_"'+present+'"_"'+hostel+"_"+hosteltype+'file.csv'
-                #print(123)
+                ##print(123)
                 return response
             dt.insert(0,"index",[int(i) for i in range(1,len(dt)+1)])
             table_content = dt.to_html(index=False)
@@ -635,24 +643,24 @@ def manual_checking(request):
         try:
 
             profile = Profile.objects.get(pk=phone)
-            #print(1)
+            ##print(1)
             context = {'profile': profile}
             return render(request,'core/manul_attendance.html',context)
         except:
-            #print('sorry')
+            ##print('sorry')
             messages.error(request,"Check phone number,Try Again!!")
             pass
     return redirect('index')
 @login_required
 
 def manual_attendance(request):
-    #print(2)
+    ##print(2)
     date=datetime.now().strftime("%Y-%m-%d")
     attendance={}
     if os.path.getsize("media/picklefiles/attendance.pickle") > 0:
         attendance=pickle.loads(open('media/picklefiles/attendance.pickle',"rb").read())
-    #print(date)
-    #print(attendance)
+    ##print(date)
+    ##print(attendance)
     att=attendance[date]
     if len(att[0])==0:
         return redirect('index')
@@ -676,7 +684,7 @@ def manual_attendance(request):
                 else:
                     messages.success(request,'Already present!')
             except:
-                #print('sorry')
+                ##print('sorry')
                 messages.success(request,'Sorry! Try Again..')
                 pass
     except:
@@ -684,20 +692,20 @@ def manual_attendance(request):
     attendance[date]=att
     pickle_file=open('media/picklefiles/attendance.pickle', 'wb')
     pickle.dump(attendance, pickle_file )
-    #print("db sucessfully update!")
+    ##print("db sucessfully update!")
     return redirect('index')
 
 
 
 def pickel_attendance(dte):
-    #print(404)
+    ##print(404)
     profiles = Profile.objects.all()
     try:
-        #print(os.path.getsize("media/picklefiles/attendance.pickle"))
+        ##print(os.path.getsize("media/picklefiles/attendance.pickle"))
         if os.path.getsize("media/picklefiles/attendance.pickle") > 0:
-            #print(1)
+            ##print(1)
             pickle_file = open('media/picklefiles/attendance.pickle', 'rb')
-            #print(2)
+            ##print(2)
             pickled_object = pickle.load(pickle_file)
 
         else:
@@ -720,7 +728,7 @@ def pickel_attendance(dte):
         history.delete()
         
     except EOFError:
-        # #print(pickled_object = pickle.load(pickle_file))
+        # ##print(pickled_object = pickle.load(pickle_file))
         pickled_object = {}
 
 
@@ -741,8 +749,8 @@ def attendanceview(request):
             hostel=request.GET["hostel"]
             hosteltype=request.GET["hosteltype"]
             option=request.GET["option"]
-            print(hostel)
-            print(hosteltype)
+            #print(hostel)
+            #print(hosteltype)
             if present==None or hostel==None :
                 return redirect('index')#####
             #pickle_attenance
@@ -770,7 +778,7 @@ def attendanceview(request):
                     r.extend(att[0])
                     r.extend(att[1])
                     r=list(set(r))
-            print(r)
+            #print(r)
             file="media/attendance_documents/" +date1.strftime("%Y-%m-%d")+"to"+date2.strftime("%Y-%m-%d")+"_"+present+"_"+hostel+"_"+hosteltype+"file.csv"
             with open(file, 'w') as f:
                 f.writelines('first_name,last_name,phone,parent_phone,hostelname,hosteltype,roomno,'+",".join(l)+',total_present_days,total_absent_days')
@@ -779,9 +787,9 @@ def attendanceview(request):
                 s=[]
                 u=[]
                 for date in l:
-                    print(date not in attendance.keys())
+                    #print(date not in attendance.keys())
                     if date not in attendance.keys():
-                        print(123456)
+                        #print(123456)
                         s.append('No attendance')
                     else:
                         att=attendance[str(date)]
@@ -790,7 +798,7 @@ def attendanceview(request):
                             s.append('No data')
                             continue
                         att_user=att_db[student]
-                        print(att_user)
+                        #print(att_user)
                         if hostel=='All' and hosteltype=='All':
                             # 'first_name':profile.first_name,'last_name':profile.last_name,'date':profile.date,'hostelname':profile.hostelname,'hosteltype':profile.hosteltype,'roomno':profile.roomno,'phone':profile.phone
                             if len(u)==0:
@@ -801,7 +809,7 @@ def attendanceview(request):
                                 u.append(str(att_user['hostelname']))
                                 u.append(str(att_user['hosteltype']))
                                 u.append(str(att_user['roomno']))
-                            print((att_user['phone']) in att[1])
+                            #print((att_user['phone']) in att[1])
                             if (att_user['phone']) in att[1]:
                                 s.append("Present")
                             elif (att_user['phone']) in att[0]:
@@ -823,7 +831,7 @@ def attendanceview(request):
                             else:
                                 s.append('Shifted')
                         elif hostel=='All':
-                            print(2)
+                            #print(2)
                             if att_user['hosteltype']==hosteltype:
                                 if len(u)==0:
                                     u.append(str(att_user['first_name']))
@@ -864,13 +872,13 @@ def attendanceview(request):
                     fl=1
                 if ("Absent" in s):
                     fl=1
-                print(fl)
+                #print(fl)
                 if fl==1:
                     with open(file, 'a') as f:
                         f.writelines("\n"+",".join(s))
                         f.close()
                 else:
-                    print(s)
+                    #print(s)
                     continue
                     # messages.error(request,"Enter valid dates !")
                     # return redirect('index')
@@ -882,7 +890,7 @@ def attendanceview(request):
                 return redirect('index')
             dt=dt.sort_values('roomno')
             dt=dt.sort_values('hostelname')
-            print(dt)
+            #print(dt)
             # dt["index"] = 
             
             dt.insert(0,"index",[int(i) for i in range(1,len(dt)+1)])
@@ -902,7 +910,7 @@ def attendanceview(request):
             return  render(request, 'core/table.html', context)
         return redirect('index')
     except Exception as e:
-        print(e)
+        #print(e)
         messages.error(request,'Something Wrong!!')
         return redirect('index')
     
@@ -940,7 +948,7 @@ def hostelreport(request):
     df['total_hostel'] = {'Absent':len(att[0]),'Present':len(att[1])}
     dt = pd.DataFrame(df)
     dt=dt.T
-    print(df)
+    #print(df)
     if option=='download':
         response = FileResponse(dt.to_csv(), content_type='application/force-download')
         response['Content-Disposition'] = 'inline; filename='+day+'_hostel report.csv'
@@ -953,7 +961,7 @@ def hostelreport(request):
 
 
 def studentreport(request):
-    print(123)
+    #print(123)
     fdate=request.GET.get("date1", "")
     tdate=request.GET.get("date2", "")
     date1=datetime.strptime(request.GET.get("date1", ""), "%Y-%m-%d").date()
@@ -976,18 +984,17 @@ def studentreport(request):
         attendance=pickle.loads(open('media/picklefiles/attendance.pickle',"rb").read())
     else:
         attendance={}
-    
     delta = dta.timedelta(days=1)
     datelist=[]
     a={}
     A=0
     P=0
     H=0
-    print(attendance)
+    #print(attendance)
     while (date1 <= date2):
         f=date1
         f=f.strftime("%Y-%m-%d")
-        print( f in attendance.keys(),f)
+        #print( f in attendance.keys(),f)
         if f in attendance.keys():
             att=attendance[f]
             if int(phone) in att[0]:
@@ -1000,12 +1007,18 @@ def studentreport(request):
             a[f]='holiday'
             H+=1
         date1 += delta
+    if P+A==0 and H!=0:
+        messages.error(request,"Given dates are Holidays!")
+        return redirect("index")
+    if P+A+H==0:
+        messages.error(request,"No Student Data!")
+        return redirect("index")
     a['total present days']=P
     a['total absent days']=A
     a["total holidays"]=H
     dt=pd.Series(a)
     df=dt.to_frame(name=str(phone)+"_report")
-    print(df)
+    #print(df)
     if option=='download':
         response = FileResponse(df.to_csv(), content_type='application/force-download')
         response['Content-Disposition'] = 'inline; filename='+str(phone)+'_hostel report.csv'
