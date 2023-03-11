@@ -198,6 +198,7 @@ def profiles(request):
 def details(request):
     global dataflag
     if dataflag==1:
+        dataflag=0
         return render(request, 'core/index.html')
     try:
         last_face = LastFace.objects.last().last_face
